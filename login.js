@@ -27,7 +27,7 @@ document.getElementById("login").onclick=()=>{
         (async ()=>{
             var pwdsha=await sha256(pwd);
             var xhr=new XMLHttpRequest();
-            xhr.open("POST", `/api/login`);
+            xhr.open("POST", `http://localhost:8080/api/login`);
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.onreadystatechange=()=>{
                 if(xhr.readyState==4&&xhr.status==200){
@@ -65,7 +65,7 @@ document.getElementById("login").onclick=()=>{
 if(document.cookie.indexOf("token=")!=-1){
     var token=document.cookie.split("token=")[1].split(";")[0];
     var xhr=new XMLHttpRequest();
-    xhr.open("GET",`/api/verifyToken?token=${token}`);
+    xhr.open("GET",`http://localhost:8080/api/verifyToken?token=${token}`);
     xhr.onreadystatechange=function(){
         if(xhr.readyState==4&&xhr.status==200){
             Snackbar.show({

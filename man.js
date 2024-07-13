@@ -15,7 +15,7 @@ if(document.cookie.indexOf("token=")==-1){
 else{
     var token=document.cookie.split("token=")[1].split(";")[0];
     var xhr=new XMLHttpRequest();
-    xhr.open("GET",`/api/verifyToken?token=${token}`);
+    xhr.open("GET",`http://localhost:8080/api/verifyToken?token=${token}`);
     xhr.onreadystatechange=function(){
         if(xhr.readyState==4&&xhr.status==403){
             document.cookie="token=;path=/;max-age=0;expires=0;";
@@ -43,7 +43,7 @@ else{
     ldb.innerHTML="<br>加载中...";
     document.getElementById("main").appendChild(ldb);
     var xhr=new XMLHttpRequest();
-    xhr.open("GET",`/api/getGroups?token=${token}`)
+    xhr.open("GET",`http://localhost:8080/api/getGroups?token=${token}`)
     xhr.onreadystatechange=function(){
         if(xhr.readyState==4&&xhr.status==200){
             var groups=JSON.parse(xhr.responseText).groups;
@@ -68,7 +68,7 @@ else{
                 lc.className="links-container";
                 group.appendChild(lc);
                 var lxhr=new XMLHttpRequest();
-                lxhr.open("GET",`/api/getLinks?token=${token}&group=${groups[i].id}`,false)
+                lxhr.open("GET",`http://localhost:8080/api/getLinks?token=${token}&group=${groups[i].id}`,false)
                 lxhr.send();
                 if(lxhr.status==200){
                     var links=JSON.parse(lxhr.responseText).links;

@@ -232,7 +232,7 @@ body{
     -o-transform:translate(-50%,-70%);
 }
 .dialog-header {
-    padding: 10px;
+    padding: 10px 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -333,4 +333,10 @@ body{
 #newGroupDescr,#newLinkDescr{
     height:50px;
     font-family: "Noto Sans SC",sans-serif;
+}
+#dialog-yamleditor-container{
+    height: 200px;
+}
+#dialog-yamleditor-container *{
+    font-family: monospace;
 }

@@ -42,6 +42,22 @@ function logout(){
         location.href="/";
     },1000);
 }
+function copyToClip(content){
+    var aux=document.createElement("input"); 
+    aux.setAttribute("value", content); 
+    document.body.appendChild(aux); 
+    aux.select();
+    document.execCommand("copy"); 
+    document.body.removeChild(aux);
+    Snackbar.show({
+        text:"复制成功",
+        showAction: false,
+        pos: "top-center"
+    });
+}
+function copyLink(cpl){
+    copyToClip(cpl.parentNode.parentNode.children[1].innerText);
+}
 function addGroup(){
     showDialog("新增分组",`<div class="dialog-form">
         <span class="dialog-form-title">名称</span>
@@ -207,6 +223,33 @@ function removeGroup(rmg){
         xhr.send();
     });
 }
+function removeLink(rml){
+    showDialog("确认",`确实要删除这个友链吗？（真的很久！）`,()=>{
+        var oid=rml.parentNode.parentNode.getAttribute("oid");
+        var xhr=new XMLHttpRequest();
+        xhr.open("GET",`http://localhost:8080/api/removeLink?token=${token}&oid=${oid}`);
+        xhr.setRequestHeader("Content-Type","application/json");
+        xhr.onreadystatechange=()=>{
+            if(xhr.readyState==4&&xhr.status==200){
+                closeDialog();
+                reloadLinks();
+                Snackbar.show({
+                    text:"删除成功",
+                    showAction: false,
+                    pos: "top-center"
+                });
+            }
+            else if(xhr.readyState==4){
+                Snackbar.show({
+                    text:"删除失败",
+                    showAction: false,
+                    pos: "top-center"
+                });
+            }
+        }
+        xhr.send();
+    });
+}
 function addLink(adg){
     showDialog("添加友链",`
         <div class="dialog-form">
@@ -219,11 +262,11 @@ function addLink(adg){
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">网址</span>
-            <input type="text" class="dialog-form-input" id="newLink" placeholder="请输入友链网址"/>
+            <input type="text" class="dialog-form-input" id="newLink" placeholder="请输入友链网址【http(s)】"/>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">头像</span>
-            <input type="text" class="dialog-form-input" id="newLinkAvatar" placeholder="请输入友链头像"/>
+            <input type="text" class="dialog-form-input" id="newLinkAvatar" placeholder="请输入友链头像【http(s)】"/>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">颜色</span>
@@ -258,7 +301,9 @@ function addLink(adg){
                 return;
             }
             try{
-                new URL(document.getElementById("newLinkName").value);
+                if(document.getElementById("newLink").value.indexOf("https://")==-1&&document.getElementById("newLink").value.indexOf("http://")==-1)
+                    throw error;
+                new URL(document.getElementById("newLink").value);
             }
             catch(err){
                 Snackbar.show({
@@ -269,6 +314,8 @@ function addLink(adg){
                 return;
             }
             try{
+                if(document.getElementById("newLinkAvatar").value.indexOf("https://")==-1&&document.getElementById("newLinkAvatar").value.indexOf("http://")==-1)
+                    throw error;
                 new URL(document.getElementById("newLinkAvatar").value);
             }
             catch(err){
@@ -312,6 +359,128 @@ function addLink(adg){
         }
     )
 }
+function addLinkByYAML(adg){
+    showDialog("添加友链",`
+        <div class="dialog-form">
+            <span class="dialog-form-title">分组</span>
+            ${adg.parentNode.children[0].innerHTML}
+        </div>
+        <pre id="dialog-yamleditor-container"></pre>`,()=>{
+            try{
+                var yaml=jsyaml.load(editor.getValue());
+                if(yaml.length>1){
+                    Snackbar.show({
+                        text:"YAML格式不正确",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                if(yaml[0].constructor!=Object){
+                    Snackbar.show({
+                        text:"YAML格式不正确",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                if(yaml[0].name==undefined||yaml[0].name==''){
+                    Snackbar.show({
+                        text:"请填写名称",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                if(yaml[0].link==undefined||yaml[0].link==''){
+                    Snackbar.show({
+                        text:"请填写链接",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                if(yaml[0].avatar==undefined||yaml[0].avatar==''){
+                    Snackbar.show({
+                        text:"请填写头像",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                try{
+                    if(yaml[0].link.indexOf("https://")==-1&&yaml[0].link.indexOf("http://")==-1)
+                        throw error;
+                    new URL(yaml[0].link);
+                }
+                catch(err){
+                    Snackbar.show({
+                        text:"网址格式不正确",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                try{
+                    if(yaml[0].avatar.indexOf("https://")==-1&&yaml[0].avatar.indexOf("http://")==-1)
+                        throw error;
+                    new URL(yaml[0].avatar);
+                }
+                catch(err){
+                    Snackbar.show({
+                        text:"头像格式不正确",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                var xhr=new XMLHttpRequest();
+                xhr.open("POST",`http://localhost:8080/api/addLink`);
+                xhr.setRequestHeader("Content-Type","application/json");
+                xhr.onreadystatechange=()=>{
+                    if(xhr.readyState==4&&xhr.status==200){
+                        closeDialog();
+                        reloadLinks();
+                        Snackbar.show({
+                            text:"添加成功",
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                    }
+                    else if(xhr.readyState==4){
+                        Snackbar.show({
+                            text:"添加失败",
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                    }
+                };
+                xhr.send(JSON.stringify({
+                    name:yaml[0].name,
+                    link:yaml[0].link,
+                    avatar:yaml[0].avatar,
+                    color:yaml[0].theme_color,
+                    descr:yaml[0].descr,
+                    group:adg.parentNode.parentNode.getAttribute("uid"),
+                    token:token
+                }))
+            }
+            catch(e){
+                Snackbar.show({
+                    text:"YAML格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+        }
+    );
+    var editor=ace.edit("dialog-yamleditor-container");
+    editor.setReadOnly(false);
+    editor.setFontSize(15);
+    editor.setOption("wrap", "free");
+    editor.session.setMode("ace/mode/yaml");      
+}
 (reloadLinks=()=>{
     document.getElementsByClassName("reloadLinks")[0].disabled=true;
     var rl=document.getElementsByClassName("group");
@@ -344,6 +513,9 @@ function addLink(adg){
                     </button>
                     <button class="mini-btn addGroup" onclick="addLink(this);" title="添加友链">
                         <i class="fa fa-plus"></i>
+                    </button>
+                    <button class="mini-btn addGroup" onclick="addLinkByYAML(this);" title="从Butterfly YAML添加单个友链">
+                        <i class="fa fa-file-alt"></i>
                     </button>
                 </div>
                 <div class="group-descr">${window.groups[i].descr}</div>`

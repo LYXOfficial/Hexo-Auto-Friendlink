@@ -13,7 +13,6 @@
           },
           {
             "key": "Access-Control-Allow-Methods",
-            
             "value": "*"
           },
           {

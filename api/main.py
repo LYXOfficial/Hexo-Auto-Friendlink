@@ -12,6 +12,14 @@ class Flink(BaseModel):
     descr:str=None
     color:str=None
     group:str=None
+    oid:str=None
+    token:str=None
+class Group(BaseModel):
+    name:str=None
+    pos:int=None
+    token:str=None
+    descr:str=None
+    oid:str=None
 app=FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -126,6 +134,27 @@ def getlinks(token:str,group:int,response:Response):
     else:
         response.status_code=403
         return {"message":"invaild token"}
+@app.post("/api/addGroup")
+def addgroup(grp:Group,response:Response):
+    if access(grp.token):
+        ids=[i["id"] for i in lca.getClassObjects("group")['results']]
+        while 1:
+            id=random.randint(0,99999999)
+            if id not in ids:
+                break
+        lca.createObject("group",{"name":grp.name,"descr":grp.descr,"pos":grp.pos,"id":id})
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
+@app.post("/api/modifyGroup")
+def modifygroup(grp:Group,response:Response):
+    if access(grp.token):
+        lca.updateObject("group",grp.oid,{"name":grp.name,"descr":grp.descr,"pos":grp.pos})
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
 @app.get("/api/removeGroup")
 def removegroup(token:str,oid:str,response:Response):
     if access(token):
@@ -147,12 +176,20 @@ def removelink(token:str,oid:str,response:Response):
         response.status_code=403
         return {"message":"invaild token"}
 @app.post("/api/addLink")
-def addlink(token:str,flink:Flink,response:Response):
-    if access(token):
-        lca.createObject("flink",{"group":group,"name":name,"link":link,"avatar":avatar,"descr":descr,"color":color})
+def addlink(flink:Flink,response:Response):
+    if access(flink.token):
+        lca.createObject("flink",{"group":flink.group,"name":flink.name,"link":flink.link,"avatar":flink.avatar,"descr":flink.descr,"color":flink.color})
         return {"message":"ok"}
     else:
         pass
+@app.post("/api/modifyLink")
+def modifylink(flink:Flink,response:Response):
+    if access(flink.token):
+        lca.updateObject("flink",flink.oid,{"group":flink.group,"name":flink.name,"link":flink.link,"avatar":flink.avatar,"descr":flink.descr,"color":flink.color})
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
 if __name__=='__main__':
     import uvicorn
     uvicorn.run(app="main:app",host="127.0.0.1",port=8080,reload=1)

@@ -1,9 +1,25 @@
 
 {
-    "builds": [
-      {"src": "/api/main.py", "use": "@now/python"}
-    ],
     "routes": [
       {"src": "/api(.*)", "dest": "api/main.py"}
+    ],
+    "headers": [
+      {
+        "source": "/(.*)",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "*"
+          },
+          {
+            "key": "Access-Control-Allow-Headers",
+            "value": "*"
+          }
+        ]
+      }
     ]
-  }
+}

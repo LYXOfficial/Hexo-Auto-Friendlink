@@ -208,27 +208,107 @@ function removeGroup(rmg){
     });
 }
 function addLink(adg){
-    showDialog("添加友链",`<div class="dialog-form">
+    showDialog("添加友链",`
+        <div class="dialog-form">
+            <span class="dialog-form-title">分组</span>
+            ${adg.parentNode.children[0].innerHTML}
+        </div>
+        <div class="dialog-form">
             <span class="dialog-form-title">名称</span>
-            <input type="text" class="dialog-form-input" id="newLinkName" value="${edg.parentNode.children[0].innerHTML}" placeholder="请输入分组名称"/>
+            <input type="text" class="dialog-form-input" id="newLinkName" placeholder="请输入友链名称"/>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">网址</span>
-            <input type="text" class="dialog-form-input" id="newLink" value="${edg.parentNode.children[0].innerHTML}" placeholder="请输入分组名称"/>
+            <input type="text" class="dialog-form-input" id="newLink" placeholder="请输入友链网址"/>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">头像</span>
-            <input type="text" class="dialog-form-input" id="newLinkAvatar" value="${edg.parentNode.children[0].innerHTML}" placeholder="请输入分组名称"/>
+            <input type="text" class="dialog-form-input" id="newLinkAvatar" placeholder="请输入友链头像"/>
         </div>
         <div class="dialog-form">
-            <span class="dialog-form-title">测试</span>
-            <input type="text" class="dialog-form-input" id="newLinkAvatar" value="${edg.parentNode.children[0].innerHTML}" placeholder="请输入分组名称"/>
+            <span class="dialog-form-title">颜色</span>
+            <input type="text" class="dialog-form-input" id="newLinkColor" placeholder="请输入友链显示颜色"/>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">描述</span>
-            <textarea class="dialog-form-input" id="newLinkDescr" placeholder="...">${edg.parentNode.parentNode.children[1].innerHTML}</textarea>
+            <textarea class="dialog-form-input" id="newLinkDescr" placeholder="..."></textarea>
         </div>`,()=>{
-
+            if(document.getElementById("newLinkName").value==''){
+                Snackbar.show({
+                    text:"名称不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLink").value==''){
+                Snackbar.show({
+                    text:"网址不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLinkAvatar").value==''){
+                Snackbar.show({
+                    text:"头像不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            try{
+                new URL(document.getElementById("newLinkName").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"网址格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            try{
+                new URL(document.getElementById("newLinkAvatar").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"头像格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            var xhr=new XMLHttpRequest();
+            xhr.open("POST",`http://localhost:8080/api/addLink`);
+            xhr.setRequestHeader("Content-Type","application/json");
+            xhr.onreadystatechange=()=>{
+                if(xhr.readyState==4&&xhr.status==200){
+                    closeDialog();
+                    reloadLinks();
+                    Snackbar.show({
+                        text:"添加成功",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+                else if(xhr.readyState==4){
+                    Snackbar.show({
+                        text:"添加失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+            };
+            xhr.send(JSON.stringify({
+                name:document.getElementById("newLinkName").value,
+                link:document.getElementById("newLink").value,
+                avatar:document.getElementById("newLinkAvatar").value,
+                color:document.getElementById("newLinkColor").value,
+                descr:document.getElementById("newLinkDescr").value,
+                group:adg.parentNode.parentNode.getAttribute("uid"),
+                token:token
+            }))
         }
     )
 }
@@ -253,6 +333,7 @@ function addLink(adg){
                 group.className="group";
                 group.setAttribute("oid",window.groups[i].oid);
                 group.setAttribute("pos",window.groups[i].pos);
+                group.setAttribute("uid",window.groups[i].id);
                 group.innerHTML=`<div class="group-firstline">
                     <h2 class="group-title">${window.groups[i].name}</h2>
                     <button class="mini-btn editGroup" onclick="editGroup(this);" title="编辑该分组">
@@ -281,7 +362,7 @@ function addLink(adg){
                         link.innerHTML=`
                             <img class="link-avatar" src="${links[j].avatar}"></img>
                             <a href="${links[j].link}" class="link-name">${links[j].name}</a>
-                            <div class="link-color"><div class="color-block" style="background-color:${links[j].color==undefined?"white":links[j].color}"></div>${links[j].color==undefined?"暂无颜色":links[j].color}</div>
+                            <div class="link-color"><div class="color-block" style="background-color:${links[j].color==undefined?"white":links[j].color}"></div>${links[j].color==undefined||links[j].color==''?"暂无颜色":links[j].color}</div>
                             <div class="link-buttons">
                                 <button class="mini-btn editLink" onclick="editLink(this);" title="编辑该友链">
                                     <i class="fa fa-edit"></i>

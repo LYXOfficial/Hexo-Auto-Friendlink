@@ -11,7 +11,7 @@ class Flink(BaseModel):
     avatar:str=None
     descr:str=None
     color:str=None
-    group:str=None
+    group:int=None
     oid:str=None
     token:str=None
 class Group(BaseModel):

@@ -70,6 +70,7 @@ body{
     font-size:16px;
     transition: all .3s;
     margin-right:5px;
+    margin-top:5px;
 }
 .btn.btn-blue{
     background-color:var(--aria-blue);
@@ -339,4 +340,10 @@ body{
 }
 #dialog-yamleditor-container *{
     font-family: monospace;
+}
+.blog-updated,nav a{
+    white-space: nowrap;
+}
+#dialogCancelBtn{
+    margin-right: 7px;
 }

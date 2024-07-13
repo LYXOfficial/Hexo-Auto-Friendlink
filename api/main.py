@@ -161,7 +161,8 @@ def removegroup(token:str,oid:str,response:Response):
         gid=lca.getObjectInfo("group",oid)["id"]
         lks=lca.getClassObjects("flink")["results"]
         for i in lks:
-            lca.deleteObject("flink",i["objectId"])
+            if i["group"]==gid:
+                lca.deleteObject("flink",i["objectId"])
         lca.deleteObject("group",oid)
         return {"message":"ok"}
     else:

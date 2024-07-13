@@ -250,11 +250,11 @@ function removeLink(rml){
         xhr.send();
     });
 }
-function addLink(adg){
+function addLink(adl){
     showDialog("添加友链",`
         <div class="dialog-form">
             <span class="dialog-form-title">分组</span>
-            ${adg.parentNode.children[0].innerHTML}
+            ${adl.parentNode.children[0].innerHTML}
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">名称</span>
@@ -353,14 +353,124 @@ function addLink(adg){
                 avatar:document.getElementById("newLinkAvatar").value,
                 color:document.getElementById("newLinkColor").value,
                 descr:document.getElementById("newLinkDescr").value,
-                group:adg.parentNode.parentNode.getAttribute("uid"),
+                group:adl.parentNode.parentNode.getAttribute("uid"),
+                token:token
+            }))
+        }
+    )
+}
+function editLink(edl){
+    showDialog("编辑友链",`
+        <div class="dialog-form">
+            <span class="dialog-form-title">分组</span>
+            ${edl.parentNode.parentNode.parentNode.parentNode.children[0].children[0].innerText}
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">名称</span>
+            <input type="text" class="dialog-form-input" id="newLinkName" value="${edl.parentNode.parentNode.children[1].innerHTML}" placeholder="请输入友链名称"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">网址</span>
+            <input type="text" class="dialog-form-input" id="newLink" value="${edl.parentNode.parentNode.children[1].href}" placeholder="请输入友链网址【http(s)】"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">头像</span>
+            <input type="text" class="dialog-form-input" id="newLinkAvatar" value="${edl.parentNode.parentNode.children[0].src}" placeholder="请输入友链头像【http(s)】"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">颜色</span>
+            <input type="text" class="dialog-form-input" id="newLinkColor" value="${edl.parentNode.parentNode.children[2].innerText}" placeholder="请输入友链显示颜色"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">描述</span>
+            <textarea class="dialog-form-input" id="newLinkDescr" placeholder="...">${edl.parentNode.parentNode.children[4].innerText}</textarea>
+        </div>`,()=>{
+            if(document.getElementById("newLinkName").value==''){
+                Snackbar.show({
+                    text:"名称不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLink").value==''){
+                Snackbar.show({
+                    text:"网址不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLinkAvatar").value==''){
+                Snackbar.show({
+                    text:"头像不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            try{
+                if(document.getElementById("newLink").value.indexOf("https://")==-1&&document.getElementById("newLink").value.indexOf("http://")==-1)
+                    throw error;
+                new URL(document.getElementById("newLink").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"网址格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            try{
+                if(document.getElementById("newLinkAvatar").value.indexOf("https://")==-1&&document.getElementById("newLinkAvatar").value.indexOf("http://")==-1)
+                    throw error;
+                new URL(document.getElementById("newLinkAvatar").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"头像格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            var xhr=new XMLHttpRequest();
+            xhr.open("POST",`http://localhost:8080/api/modifyLink`);
+            xhr.setRequestHeader("Content-Type","application/json");
+            xhr.onreadystatechange=()=>{
+                if(xhr.readyState==4&&xhr.status==200){
+                    closeDialog();
+                    reloadLinks();
+                    Snackbar.show({
+                        text:"修改成功",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+                else if(xhr.readyState==4){
+                    Snackbar.show({
+                        text:"修改失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+            };
+            xhr.send(JSON.stringify({
+                name:document.getElementById("newLinkName").value,
+                link:document.getElementById("newLink").value,
+                avatar:document.getElementById("newLinkAvatar").value,
+                color:document.getElementById("newLinkColor").value,
+                descr:document.getElementById("newLinkDescr").value,
+                group:edl.parentNode.parentNode.parentNode.parentNode.getAttribute("uid"),
+                oid:edl.parentNode.parentNode.getAttribute("oid"),
                 token:token
             }))
         }
     )
 }
 function addLinkByYAML(adg){
-    showDialog("添加友链",`
+    showDialog("从Butterfly YAML添加单个友链",`
         <div class="dialog-form">
             <span class="dialog-form-title">分组</span>
             ${adg.parentNode.children[0].innerHTML}
@@ -534,7 +644,7 @@ function addLinkByYAML(adg){
                         link.innerHTML=`
                             <img class="link-avatar" src="${links[j].avatar}"></img>
                             <a href="${links[j].link}" class="link-name">${links[j].name}</a>
-                            <div class="link-color"><div class="color-block" style="background-color:${links[j].color==undefined?"white":links[j].color}"></div>${links[j].color==undefined||links[j].color==''?"暂无颜色":links[j].color}</div>
+                            <div class="link-color"><div class="color-block" style="background-color:${links[j].color==undefined?"#888888bb":links[j].color}"></div>${links[j].color==undefined||links[j].color==''?"暂无颜色":links[j].color}</div>
                             <div class="link-buttons">
                                 <button class="mini-btn editLink" onclick="editLink(this);" title="编辑该友链">
                                     <i class="fa fa-edit"></i>

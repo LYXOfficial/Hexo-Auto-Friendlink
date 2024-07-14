@@ -1,3 +1,12 @@
+/* Hexo-Auto-FriendLink By Ariasaka v0.1.0
+    **这个蒟蒻太菜了快来欺负
+    **私活很多自己看（
+    **前后端分离了好像有没有分离
+    **垃圾py水平的FastAPI后端
+    **原生，启动！
+    **码风是不是很奇怪呢？
+    **QwQ
+*/
 if(document.cookie.indexOf("token=")==-1){
     location.href="/";
 }

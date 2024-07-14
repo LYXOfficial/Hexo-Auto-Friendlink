@@ -1,3 +1,14 @@
+"""
+Hexo-Auto-FriendLink v0.1.0 Backend By Ariasaka
+**Vercel部署+Leancloud数据库
+**快来欺负这个蒟蒻太菜了
+**FastAPI框架实现
+**仅三个依赖
+**小笨蛋不会用JWT用Token ww
+**小笨蛋不会用数据库用Leancloud
+**Leancloud Python文档太抽象了结果手写RESTAPI QAQ
+**又是奇怪的码风
+"""
 from typing import Union
 from fastapi import FastAPI,Response
 from fastapi.middleware.cors import CORSMiddleware

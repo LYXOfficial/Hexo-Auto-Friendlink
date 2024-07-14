@@ -222,7 +222,7 @@ function removeGroup(rmg){
             text:"删除中...可能需要花费几分钟的时间，请坐和放宽",
             showAction: false,
             pos: "top-center",
-            duration: "30000"
+            duration: "1200000"
         });
         for(var i=1;i<=20;i++){
             try{
@@ -748,6 +748,15 @@ function importLinks(){
                 document.querySelector("#dialogSureBtn").disabled=true;
                 if(document.getElementById("dialog-yamleditor-import-override").checked){
                     for(var i=0;i<window.groups.length;i++){
+                        try{
+                            document.querySelector(".snackbar-container").innerHTML=`
+                            <p style="margin: 0px; padding: 0px; color: rgb(255, 255, 255); font-size: 14px; font-weight: 300; line-height: 1em;">
+                            导入中... 这可能需要几分钟，坐和放宽
+                            <br/>
+                            删除分组：${window.groups[i].name}
+                            </p>`
+                        }
+                        catch(e){}
                         for(var j=1;j<=20;j++){
                             var st=await new Promise((resolve,reject)=>{
                                 var xhr=new XMLHttpRequest();
@@ -785,6 +794,15 @@ function importLinks(){
                     if(yaml[i].class_desc==undefined)
                         yaml[i].class_desc='';
                     if(ngid==undefined){
+                        try{
+                            document.querySelector(".snackbar-container").innerHTML=`
+                            <p style="margin: 0px; padding: 0px; color: rgb(255, 255, 255); font-size: 14px; font-weight: 300; line-height: 1em;">
+                            导入中... 这可能需要几分钟，坐和放宽
+                            <br/>
+                            新增分组：${yaml[i].class_name}
+                            </p>`
+                        }
+                        catch(e){}
                         var ngid=await new Promise((resolve,reject)=>{
                             var xhr=new XMLHttpRequest();
                             xhr.open("POST",`/api/addGroup`);
@@ -806,6 +824,15 @@ function importLinks(){
                         });
                     }
                     for(var j=0;j<yaml[i].link_list.length;j++){
+                        try{
+                            document.querySelector(".snackbar-container").innerHTML=`
+                            <p style="margin: 0px; padding: 0px; color: rgb(255, 255, 255); font-size: 14px; font-weight: 300; line-height: 1em;">
+                            导入中... 这可能需要几分钟，坐和放宽
+                            <br/>
+                            导入友链：${yaml[i].link_list[j].name}
+                            </p>`
+                        }
+                        catch(e){}
                         await new Promise((resolve,reject)=>{
                             var xhr=new XMLHttpRequest();
                             xhr.open("POST",`/api/addLink`);

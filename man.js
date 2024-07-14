@@ -933,6 +933,7 @@ function importLinks(){
     xhr.onreadystatechange=async ()=>{
         if(xhr.readyState==4&&xhr.status==200){
             window.groups=JSON.parse(xhr.responseText).groups;
+            var gps=[]
             for(var i=0;i<window.groups.length;i++){
                 var group=document.createElement("div");
                 group.className="group";
@@ -989,8 +990,10 @@ function importLinks(){
                         <div class="link-descr">${links[j].descr}</div>`
                     lc.appendChild(link);
                 }
-                document.getElementById("main").appendChild(group);
+                gps.push(group);
             }
+            for(var i=0;i<gps.length;i++)
+                document.getElementById("main").appendChild(gps[i]);
             document.getElementById("main").removeChild(document.getElementById("preload"));
             document.getElementsByClassName("reloadLinks")[0].disabled=false;
         }

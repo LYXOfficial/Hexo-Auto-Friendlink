@@ -76,7 +76,7 @@ function copyLink(cpl){
 }
 function directBuild(){
     var xhr=new XMLHttpRequest();
-    xhr.open("GET", `/api/rebuildAction${token}`);
+    xhr.open("GET", `/api/rebuildAction?token=${token}`);
     xhr.onreadystatechange=()=>{
         if(xhr.readyState==4&&xhr.status==200){
             Snackbar.show({

@@ -42,8 +42,8 @@ app.add_middleware(
 APPID=os.environ.get("APPID")
 APPKEY=os.environ.get("APPKEY")
 APPURL=os.environ.get("APPURL")
-GHTOKEN="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"
-GHREPO="LYXOfficial/blogsource"
+GHTOKEN=os.environ.get("GHTOKEN")
+GHREPO=os.environ.get("GHREPO")
 class LeancloudAPI:
     def __init__(self,AppUrl,AppId,AppKey):
         self.AppUrl=AppUrl

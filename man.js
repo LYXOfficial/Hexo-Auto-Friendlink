@@ -740,12 +740,12 @@ function importLinks(){
                     }
                 }
                 Snackbar.show({
-                    text:`导入中... 这可能需要几分钟，坐和放宽，不要乱按（）`,
+                    text:`导入中... 这可能需要几分钟，坐和放宽`,
                     showAction: false,
                     pos: "top-center",
                     duration: '12000000',
                 });
-                document.querySelector("dialogSureBtn").disabled=true;
+                document.querySelector("#dialogSureBtn").disabled=true;
                 if(document.getElementById("dialog-yamleditor-import-override").checked){
                     for(var i=0;i<window.groups.length;i++){
                         for(var j=1;j<=20;j++){
@@ -838,7 +838,7 @@ function importLinks(){
                         });
                     }
                 }
-                document.querySelector("dialogSureBtn").disabled=false;
+                document.querySelector("#dialogSureBtn").disabled=false;
                 closeDialog();
                 reloadLinks();
                 Snackbar.show({
@@ -850,7 +850,7 @@ function importLinks(){
             catch(e){
                 try{
                     if(e.name=="YAMLException"){
-                        document.querySelector("dialogSureBtn").disabled=false;
+                        document.querySelector("#dialogSureBtn").disabled=false;
                         Snackbar.show({
                             text:"YAML格式不正确",
                             showAction: false,
@@ -859,7 +859,7 @@ function importLinks(){
                         return;
                     }
                     else{
-                        document.querySelector("dialogSureBtn").disabled=false;
+                        document.querySelector("#dialogSureBtn").disabled=false;
                         closeDialog();
                         reloadLinks();
                         Snackbar.show({
@@ -871,7 +871,7 @@ function importLinks(){
                     }
                 }
                 catch(e){
-                    document.querySelector("dialogSureBtn").disabled=false;
+                    document.querySelector("#dialogSureBtn").disabled=false;
                     closeDialog();
                     reloadLinks();
                     Snackbar.show({

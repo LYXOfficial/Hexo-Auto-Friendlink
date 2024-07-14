@@ -2,6 +2,8 @@
     --aria-black:#000000c7;
     --aria-blue:rgba(49, 115, 202, 0.904);
     --aria-blue-hov:rgba(49, 115, 202, 0.747);
+    --aria-red:#d35454;
+    --aria-red-hov:#d18383;
     --aria-shadow:0 0 10px #0002;
 }
 .snackbar-container{
@@ -137,6 +139,7 @@ body{
     display: grid;
     grid-template-columns: 80px calc(100% - 80px);
     grid-template-rows: 30px 30px 20px calc(100% - 80px);
+    position: relative;
 }
 .links-container{
     margin:20px 0;
@@ -373,4 +376,46 @@ body{
 .blog-updated{
     line-height: 30px;
     margin-left: 5px;
+}
+.btn.btn-red{
+    color:white;
+    background-color: var(--aria-red);
+}
+.btn.btn-red:hover{
+    color: white;
+    background-color: var(--aria-red-hov);
+}
+.mdb{
+    color: white;
+    background: #d35454;
+    position: fixed;
+    top: 100px;
+    right: 40px;
+    box-shadow: var(--aria-shadow);
+    z-index: 99;
+}
+.mdb.hide{
+    display: none;
+}
+.link-selector.show{
+    width:15px;
+    height: 15px;
+    position: absolute;
+    top:15px;
+    right:15px;
+}
+.link-selector.show:hover{
+    cursor: pointer;
+}
+.link-selector.hide{
+    display: none;
+}
+nav{
+    z-index: 114514;
+}
+.dialog-main.hide *{
+    pointer-events: none !important;
+}
+.link-avatar:hover{
+    cursor: pointer;
 }

@@ -246,10 +246,10 @@ function editGroup(edg){
     });
 }
 function removeGroup(rmg){
-    showDialog("确认",`确实要删除这个分组吗，分组下的所有友链也将被删除！!（真的很久！）`,async ()=>{
+    showDialog("确认",`确实要删除这个分组吗，分组下的所有友链也将被删除！！\n永久删除！（真的很久！）`,async ()=>{
         var oid=rmg.parentNode.parentNode.getAttribute("oid");
         Snackbar.show({
-            text:"删除中...可能需要花费几分钟的时间，请坐和放宽",
+            text:"删除中...这可能需要几分钟，请坐和放宽",
             showAction: false,
             pos: "top-center",
             duration: "1200000"
@@ -293,7 +293,7 @@ function removeGroup(rmg){
     });
 }
 function removeLink(rml){
-    showDialog("确认",`确实要删除这个友链吗？（真的很久！）`,()=>{
+    showDialog("确认",`确实要永久删除这个友链吗？（真的很久！）`,()=>{
         var oid=rml.parentNode.parentNode.getAttribute("oid");
         var xhr=new XMLHttpRequest();
         xhr.open("GET",`/api/removeLink?token=${token}&oid=${oid}`);
@@ -676,7 +676,8 @@ function importLinks(){
     showDialog("从Butterfly YAML批量导入友链",`
         若有分组名称重合将合并原组与新组并保留原组描述，不会覆盖重合的友链信息，防止出现问题。
         <div class="dialog-form">
-            <input type="checkbox" id="dialog-yamleditor-import-override">清空已存在的友链及分组（建议）
+            <input type="checkbox" id="dialog-yamleditor-import-override"/>
+            <label for="dialog-yamleditor-import-override">清空已存在的友链及分组（建议）</label>
         </div>
         <pre id="dialog-yamleditor-container"></pre>`,async ()=>{
             try{
@@ -947,15 +948,117 @@ function importLinks(){
     editor.session.setMode("ace/mode/yaml");      
 }
 function multiSelect(){
-
+    if(window.isMultiSelecting==undefined)
+        window.isMultiSelecting=true;
+    else window.isMultiSelecting=!window.isMultiSelecting;
+    if(window.isMultiSelecting){
+        document.getElementsByClassName("multiSelect")[0].innerHTML=`<i class="fa fa-check-square"></i> 取消`;
+        document.getElementsByClassName("multiSelect")[0].className="btn btn-red multiSelect";
+        document.getElementsByClassName("mdb")[0].className="btn btn-red mdb show";
+        var lka=document.querySelectorAll(".link-selector");
+        for(var i=0;i<lka.length;i++){
+            lka[i].checked=false;
+            lka[i].className="link-selector show";
+        }
+    }
+    else{
+        document.getElementsByClassName("multiSelect")[0].innerHTML=`<i class="fa fa-check-square"></i> 多选`;
+        document.getElementsByClassName("multiSelect")[0].className="btn btn-blue multiSelect";
+        document.getElementsByClassName("mdb")[0].className="btn btn-red mdb hide";
+        var lka=document.querySelectorAll(".link-selector");
+        for(var i=0;i<lka.length;i++){
+            lka[i].checked=false;
+            lka[i].className="link-selector hide";
+        }
+    }
+}
+function removeSelect(){
+    if(window.isMultiSelecting){
+        var prr=[],slr=document.querySelectorAll(".link-selector");
+        for(var i=0;i<slr.length;i++){
+            if(slr[i].checked) prr.push([slr[i].parentNode.children[1].innerText,slr[i].parentNode.getAttribute("oid")]);
+        }
+        if(prr.length==0){
+            Snackbar.show({
+                text:"请先选择要删除的友链",
+                showAction: false,
+                pos: "top-center"
+            });
+            return;
+        }
+        showDialog("确认",`确实要永久删除这${prr.length}个友链吗？（真的很久！）`,async ()=>{
+            for(var i=0;i<prr.length;i++){
+                var oid=prr[i][1];
+                var name=prr[i][0];
+                Snackbar.show({
+                    text: `正在删除中...\n${name}（${i+1}/${prr.length}）`,
+                    showAction: false,
+                    pos: "top-center"
+                });
+                try{
+                    await new Promise((resolve,reject)=>{
+                        var xhr=new XMLHttpRequest();
+                        xhr.open("GET",`/api/removeLink?token=${token}&oid=${oid}`);
+                        xhr.setRequestHeader("Content-Type","application/json");
+                        xhr.onreadystatechange=()=>{
+                            if(xhr.readyState==4&&xhr.status==200)
+                                resolve();
+                            else if(xhr.readyState==4)
+                                reject();
+                        }
+                        xhr.send();
+                    });
+                }
+                catch(e){
+                    Snackbar.show({
+                        text:"删除失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+            }
+            closeDialog();
+            reloadLinks();
+            Snackbar.show({
+                text:"删除成功",
+                showAction: false,
+                pos: "top-center"
+            });
+        });
+    }
+}
+exportLinks=async ()=>{
+    Snackbar.show({
+        text:"正在导出...",
+        showAction: false,
+        pos: "top-center"
+    });
+    try{
+        var grl=document.getElementsByClassName("links-container");
+        for(var i=0;i<window.groups.length;i++){
+            //还没写好别急qwq
+        }
+    }
+    catch(e){
+        Snackbar.show({
+            text:"导出失败",
+            showAction: false,
+            pos: "top-center"
+        });
+        return;
+    }
 }
 (reloadLinks=()=>{
-    document.getElementsByClassName("reloadLinks")[0].disabled=true;
+    if(window.isMultiSelecting)
+        multiSelect();
+    var dbs=document.getElementsByClassName("btn")
+    for(var i=0;i<dbs.length;i++)
+        dbs[i].disabled=true;
     var rl=document.getElementsByClassName("group");
     var xi=rl.length;
-    for(var i=0;i<xi;i++){
+    for(var i=0;i<xi;i++)
         document.getElementById("main").removeChild(rl[0]);
-    }
     ldb=document.createElement("div");
     ldb.id="preload";
     ldb.innerHTML="<br>加载中...";
@@ -1007,9 +1110,12 @@ function multiSelect(){
                     link.className="link-info";
                     link.setAttribute("oid",links[j].oid);
                     link.innerHTML=`
-                        <img class="link-avatar" src="${links[j].avatar}" onerror="this.onerror=null,this.src='https://bu.dusays.com/2024/07/07/668a8ffdacde3.png'"></img>
+                        <img class="link-avatar" onclick="window.open('${links[j].link}')" src="${links[j].avatar}" onerror="this.onerror=null,this.src='https://bu.dusays.com/2024/07/07/668a8ffdacde3.png'"></img>
                         <a target="_blank" href="${links[j].link}" class="link-name">${links[j].name}</a>
-                        <div class="link-color"><div class="color-block" style="background-color:${links[j].color==undefined?"#888888bb":links[j].color}"></div>${links[j].color==undefined||links[j].color==''?"暂无颜色":links[j].color}</div>
+                        <div class="link-color">
+                            <div class="color-block" style="background-color:${links[j].color==undefined?"#888888bb":links[j].color}"></div>
+                            ${links[j].color==undefined||links[j].color==''?"暂无颜色":links[j].color}
+                        </div>
                         <div class="link-buttons">
                             <button class="mini-btn editLink" onclick="editLink(this);" title="编辑该友链">
                                 <i class="fa fa-edit"></i>
@@ -1021,7 +1127,8 @@ function multiSelect(){
                                 <i class="fa fa-trash-alt"></i>
                             </button>
                         </div>
-                        <div class="link-descr">${links[j].descr}</div>`
+                        <div class="link-descr">${links[j].descr}</div>
+                        <input class="link-selector hide" type="checkbox"/>`
                     lc.appendChild(link);
                 }
                 gps.push(group);
@@ -1029,7 +1136,9 @@ function multiSelect(){
             for(var i=0;i<gps.length;i++)
                 document.getElementById("main").appendChild(gps[i]);
             document.getElementById("main").removeChild(document.getElementById("preload"));
-            document.getElementsByClassName("reloadLinks")[0].disabled=false;
+            var dbs=document.getElementsByClassName("btn")
+            for(var i=0;i<dbs.length;i++)
+                dbs[i].disabled=false;
         }
     }
     xhr.send();

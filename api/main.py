@@ -9,11 +9,15 @@ Hexo-Auto-FriendLink v0.1.0 Backend By Ariasaka
 **Leancloud Python文档太抽象了结果手写RESTAPI QAQ
 **又是奇怪的码风
 """
+DEBUG=False
+EMAIL_TEMPLATE="""<html><head></head><body><div><includetail><div style="font:Verdana normal 14px;color:#000;"><div style="position:relative;"><div class="eml-w eml-w-sys-layout"><a style="margin: 15px 50px;font-weight:bold;font-size:20px;display: flex;color: black;"href="https://blog.yaria.top">Ariasakaの小窝</a><div style="font-size: 0px;"><div class="eml-w-sys-line"><div class="eml-w-sys-line-left"></div><div class="eml-w-sys-line-right"></div></div></div><div class="eml-w-sys-content"><div class="dragArea gen-group-list"><div class="gen-item"draggable="false"><div class="eml-w-item-block"style="padding: 0px 0px 0px 1px;"><div class="eml-w-title-level3">{}</div><div><div class="eml-w-phase-small-normal"><p class="spp">name:{}<br/>link:<a href="{}">{}</a><br/>avatar:<a href="{}">{}</a><br/>descr:{}<br/>email:<a href="mailto:{}">{}</a><br/>color:{}<br/></p><p><a href="{}">{}</a></p></div></div></div></div></div></div><div class="eml-w-sys-footer">Ariasakaの小窝</div></div></div></div><!--<![endif]--></includetail></div><style>.eml-w.eml-w-phase-normal-16{color:#2b2b2b;font-size:16px;line-height:1.75}.eml-w.eml-w-phase-bold-16{font-size:16px;color:#2b2b2b;font-weight:500;line-height:1.75}.eml-w-title-level1{font-size:20px;font-weight:500;padding:15px 0}.eml-w-title-level3{font-size:16px;font-weight:500;padding-bottom:10px}.eml-w-title-level3.center{text-align:center}.eml-w-phase-small-normal{font-size:14px;color:#2b2b2b;line-height:1.75}.eml-w-picture-wrap{padding:10px 0;width:100%;overflow:hidden}.eml-w-picture-full-img{display:block;width:auto;max-width:100%;margin:0 auto}.eml-w-sys-layout{background:#fff;box-shadow:0 2px 8px 0 rgba(0,0,0,.2);border-radius:4px;margin:50px auto;max-width:700px;overflow:hidden}.eml-w-sys-line-left{display:inline-block;width:88%;background:#2984ef;height:3px}.eml-w-sys-line-right{display:inline-block;width:11.5%;height:3px;background:#8bd5ff;margin-left:1px}.eml-w-sys-logo{text-align:right}.eml-w-sys-logo img{display:inline-block;margin:30px 50px 0 0}.eml-w-sys-content{position:relative;padding:20px 50px 0;min-height:216px;word-break:break-all}.eml-w-sys-footer{font-weight:500;font-size:12px;color:#bebebe;letter-spacing:.5px;padding:0 0 30px 50px;margin-top:60px}.eml-w{font-family:Helvetica Neue,Arial,PingFang SC,Hiragino Sans GB,STHeiti,Microsoft YaHei,sans-serif;-webkit-font-smoothing:antialiased;color:#2b2b2b;font-size:14px;line-height:1.75}.eml-w a{text-decoration:none}.eml-w a,.eml-w a:active{color:#186fd5}.eml-w h1,.eml-w h2,.eml-w h3,.eml-w h4,.eml-w h5,.eml-w h6,.eml-w li,.eml-w p,.eml-w ul{margin:0;padding:0}.eml-w-item-block{margin-bottom:10px}@media(max-width:420px){.eml-w-sys-layout{border-radius:none!important;box-shadow:none!important;margin:0!important}.eml-w-sys-layout.eml-w-sys-line{display:none}.eml-w-sys-layout.eml-w-sys-logo img{margin-right:30px!important}.eml-w-sys-layout.eml-w-sys-content{padding:0 35px!important}.eml-w-sys-layout.eml-w-sys-footer{padding-left:30px!important}}.spp{padding:20px!important;margin:20px!important;background-color:#e7e7e7;font-family:monospace;border:1px solid lightgray}</style></body></html>"""
 from typing import Union
 from fastapi import FastAPI,Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import requests,time,random,os
+from email.mime.text import MIMEText
+from email.header import Header
+import requests,time,random,os,smtplib
 class Password(BaseModel):
     pwd:str=None
 class Flink(BaseModel):
@@ -25,11 +29,16 @@ class Flink(BaseModel):
     group:int=None
     oid:str=None
     token:str=None
+    email:str=None
 class Group(BaseModel):
     name:str=None
     pos:int=None
     token:str=None
     descr:str=None
+    oid:str=None
+class SendRequest(BaseModel):
+    token:str=None
+    groupname:str=None
     oid:str=None
 app=FastAPI()
 app.add_middleware(
@@ -39,11 +48,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-APPID=os.environ.get("APPID")
-APPKEY=os.environ.get("APPKEY")
-APPURL=os.environ.get("APPURL")
-GHTOKEN=os.environ.get("GHTOKEN")
-GHREPO=os.environ.get("GHREPO")
+if DEBUG: 
+    with open("debugData.conf") as f:
+        datt=f.readlines()
+        APPID=datt[0].strip()
+        APPKEY=datt[1].strip()
+        APPURL=datt[2].strip()
+        GHTOKEN=datt[3].strip()
+        GHREPO=datt[4].strip()
+        SENDEMAIL=datt[5].strip()
+        MAILPASS=datt[6].strip()
+        SMTPHOST=datt[7].strip()
+        SMTPPORT=datt[8].strip()
+        OWNEREMAIL=datt[9].strip()
+else:
+    APPID=os.environ.get("APPID")
+    APPKEY=os.environ.get("APPKEY")
+    APPURL=os.environ.get("APPURL")
+    GHTOKEN=os.environ.get("GHTOKEN")
+    GHREPO=os.environ.get("GHREPO")
+    SENDEMAIL=os.environ.get("SENDEMAIL")
+    MAILPASS=os.environ.get("MAILPASS")
+    SMTPHOST=os.environ.get("SMTPHOST")
+    SMTPPORT=os.environ.get("SMTPPORT")
+    OWNEREMAIL=os.environ.get("OWNEREMAIL")
 class LeancloudAPI:
     def __init__(self,AppUrl,AppId,AppKey):
         self.AppUrl=AppUrl
@@ -75,6 +103,21 @@ class LeancloudAPI:
             "X-LC-Key":self.AppKey,
         }).json()
 lca=LeancloudAPI(APPURL,APPID,APPKEY)
+class SMTPClient:
+    def __init__(self,host,port,mail,passwd):
+        self.host=host
+        self.port=port
+        self.mail=mail
+        self.passwd=passwd
+    def send(self,sendname,mailto,subject,content):
+        msg=MIMEText(content,'html','utf-8')
+        msg['From']=Header(sendname,'utf-8')
+        msg['To']=mailto
+        msg['Subject']=Header(subject,'utf-8')
+        s=smtplib.SMTP_SSL(self.host,self.port)
+        s.login(self.mail,self.passwd)
+        s.sendmail(self.mail,mailto,msg.as_string())
+emsender=SMTPClient(SMTPHOST,SMTPPORT,SENDEMAIL,MAILPASS)
 def tokengen(lenn=32):
     random_str =''
     base_str='ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789'
@@ -211,7 +254,7 @@ def destroytoken(token:str,response:Response):
         response.status_code=403
         return {"message":"invaild token"}
 @app.get("/api/rebuildAction")
-def rebuildAction(token:str,response:Response):
+def rebuildaction(token:str,response:Response):
     if access(token):
         requests.post(f"https://api.github.com/repos/{GHREPO}/dispatches",
                       headers={
@@ -221,6 +264,70 @@ def rebuildAction(token:str,response:Response):
                       json={
                           "event_type": "hooklink"
                       })
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
+@app.post("/api/requestLink")
+def requestlink(flink:Flink,response:Response):
+    if "<script" in flink.name.lower() or "javascript:" in flink.name.lower()\
+        or "<script" in flink.avatar.lower() or "javascript:" in flink.avatar.lower()\
+        or "<script" in flink.link.lower() or "javascript:" in flink.link.lower()\
+        or "<script" in flink.descr.lower() or "javascript:" in flink.descr.lower()\
+        or "<script" in flink.color.lower() or "javascript:" in flink.color.lower():
+            response.status_code=403
+            return {"message":"XSS attack?"}
+    else:
+        lca.createObject("pending",{
+            "name":flink.name,
+            "link":flink.link,
+            "avatar":flink.avatar,
+            "descr":flink.descr,
+            "color":flink.color,
+            "email":flink.email,
+            "type":0
+        })
+        try:
+            emsender.send("Ariaの友链审核系统",OWNEREMAIL,"Ariasakaの小窝有新的友链申请",
+                      EMAIL_TEMPLATE.format("你好，Ariasakaの小窝有新的友链申请：",
+                                            flink.name,flink.link,
+                                            flink.link,flink.avatar,
+                                            flink.avatar,flink.descr,
+                                            flink.email,flink.email,
+                                            flink.color,"https://links.yaria.top/manager.html",
+                                            "点击进入审核"))
+            emsender.send("Ariaの友链审核系统",flink.email,"Ariasakaの小窝友链申请成功",
+                    EMAIL_TEMPLATE.format("你好，你的友链申请已经成功，请确认并等待审核<br/>如果需要修改友链请在评论区留言！",
+                                        flink.name,flink.link,
+                                        flink.link,flink.avatar,
+                                        flink.avatar,flink.descr,
+                                        flink.email,flink.email,
+                                        flink.color,"https://blog.yaria.top/links/",
+                                        "点击进入友链页"))
+        except:
+            return {"message":"send email failed"}
+        return {"message":"ok"}
+@app.get("/api/getPendingLinks")
+def getpendinglinks(token:str,response:Response):
+    if access(token):
+        return {"message":"ok","pending":lca.getClassObjects("pending")["results"]}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
+@app.post("/api/sendPassMail")
+def sendpassmail(req:SendRequest,response:Response):
+    if access(req.token):
+        emsender.send("Ariaの友链审核系统",lca.getObjectInfo("pending",req.oid)["email"],"Ariasakaの小窝友链审核通过",
+            f"""恭喜友链通过审核！已将你的友链放入 {req.groupname} 分组中哦！<br/>在<a href="https://blog.yaria.top/links/">https://blog.yaria.top/links/</a>中查看与申请修改！"""
+        )
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
+@app.get("/api/removePedingLink")
+def removependinglink(token:str,oid:str,response:Response):
+    if access(token):
+        lca.deleteObject("pending",oid)
         return {"message":"ok"}
     else:
         response.status_code=403

@@ -8,7 +8,7 @@
     <script type="text/javascript" src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/ace/1.35.2/ace.js"></script>
     <script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
     <link href="https://fonts.googleapis.cn/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/man.css"/>
+    <link rel="stylesheet" type="text/css" href="/manager.css"/>
     <link rel="stylesheet" type="text/css" href="https://npm.elemecdn.com/node-snackbar@latest/dist/snackbar.min.css"/>
     <link rel="stylesheet" type="text/css" href="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
@@ -39,9 +39,11 @@
         <button class="btn btn-blue multiSelect" onclick="multiSelect();"><i class="fa fa-check-square"></i> 多选</button>
         <button class="btn btn-blue importLinks" onclick="importLinks()"><i class="fa fa-plus"></i> 批量导入友链</button>
         <button class="btn btn-blue addGroup" onclick="addGroup();"><i class="fa fa-plus"></i> 新建分组</button>
+        <button class="btn btn-blue exportLinks" onclick="exportLinks();"><i class="fa fa-sign-out-alt"></i> 导出友链</button>
         <button class="btn btn-blue webhook" onclick="directBuild();"><i class="fa fa-earth"></i> 远程部署</button>
+        <button class="btn btn-red mdb hide" onclick="removeSelect()"><i class="fa fa-trash-alt"></i> 删除选中</button>
         <span class="blog-updated">博客最近更新：1919-08-10 11:45:14</span>
     </div>
-    <script type="text/javascript" src="/man.js"></script>
+    <script type="text/javascript" src="/manager.js"></script>
 </body>
 </html>

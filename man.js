@@ -216,30 +216,50 @@ function editGroup(edg){
     });
 }
 function removeGroup(rmg){
-    showDialog("确认",`确实要删除这个分组吗，分组下的所有友链也将被删除！!（真的很久！）`,()=>{
+    showDialog("确认",`确实要删除这个分组吗，分组下的所有友链也将被删除！!（真的很久！）`,async ()=>{
         var oid=rmg.parentNode.parentNode.getAttribute("oid");
-        var xhr=new XMLHttpRequest();
-        xhr.open("GET",`/api/removeGroup?token=${token}&oid=${oid}`);
-        xhr.setRequestHeader("Content-Type","application/json");
-        xhr.onreadystatechange=()=>{
-            if(xhr.readyState==4&&xhr.status==200){
-                closeDialog();
-                reloadLinks();
-                Snackbar.show({
-                    text:"删除成功",
-                    showAction: false,
-                    pos: "top-center"
+        Snackbar.show({
+            text:"删除中...可能需要花费几分钟的时间，请坐和放宽",
+            showAction: false,
+            pos: "top-center",
+            duration: "30000"
+        });
+        for(var i=1;i<=20;i++){
+            try{
+                var suc=await new Promise((resolve,reject)=>{
+                    var xhr=new XMLHttpRequest();
+                    xhr.open("GET",`/api/removeGroup?token=${token}&oid=${oid}`);
+                    xhr.setRequestHeader("Content-Type","application/json");
+                    xhr.onreadystatechange=()=>{
+                        if(xhr.readyState==4&&xhr.status==200)
+                            resolve(true);
+                        else if(xhr.readyState==4&&xhr.status==504)
+                            resolve(false);
+                        else if(xhr.readyState==4)
+                            reject();
+                    }
+                    xhr.send();
                 });
+                if(suc){
+                    closeDialog();
+                    reloadLinks();
+                    Snackbar.show({
+                        text:"删除成功",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
             }
-            else if(xhr.readyState==4){
+            catch(e){
                 Snackbar.show({
                     text:"删除失败",
                     showAction: false,
                     pos: "top-center"
                 });
+                return;
             }
         }
-        xhr.send();
     });
 }
 function removeLink(rml){
@@ -720,26 +740,34 @@ function importLinks(){
                     }
                 }
                 Snackbar.show({
-                    text:`导入中... 这可能需要几分钟，坐和放宽`,
+                    text:`导入中... 这可能需要几分钟，坐和放宽，不要乱按（）`,
                     showAction: false,
                     pos: "top-center",
                     duration: '12000000',
                 });
+                document.querySelector("dialogSureBtn").disabled=true;
                 if(document.getElementById("dialog-yamleditor-import-override").checked){
                     for(var i=0;i<window.groups.length;i++){
-                        await new Promise((resolve,reject)=>{
-                            var xhr=new XMLHttpRequest();
-                            xhr.open("GET",`/api/removeGroup?token=${token}&oid=${window.groups[i].oid}`);
-                            xhr.onload=()=>{
-                                if(xhr.status==200)
-                                    resolve();
-                                else reject();
-                            }
-                            xhr.onerror=()=>{
-                                reject();
-                            }
-                            xhr.send();
-                        });
+                        for(var j=1;j<=20;j++){
+                            var st=await new Promise((resolve,reject)=>{
+                                var xhr=new XMLHttpRequest();
+                                xhr.open("GET",`/api/removeGroup?token=${token}&oid=${window.groups[i].oid}`);
+                                xhr.onload=()=>{
+                                    if(xhr.status==200)
+                                        resolve("ok");
+                                    else if(xhr.status==504)
+                                        resolve("timeout");
+                                    else reject();
+                                }
+                                xhr.onerror=()=>{
+                                    if(xhr.status==504)
+                                        resolve("timeout");
+                                    else reject();
+                                }
+                                xhr.send();
+                            });
+                            if(st!="timeout") break;
+                        }
                     }
                     window.groups=[];
                 }
@@ -810,6 +838,7 @@ function importLinks(){
                         });
                     }
                 }
+                document.querySelector("dialogSureBtn").disabled=false;
                 closeDialog();
                 reloadLinks();
                 Snackbar.show({
@@ -819,15 +848,30 @@ function importLinks(){
                 });
             }
             catch(e){
-                if(e.name=="YAMLException"){
-                    Snackbar.show({
-                        text:"YAML格式不正确",
-                        showAction: false,
-                        pos: "top-center"
-                    });
-                    return;
+                try{
+                    if(e.name=="YAMLException"){
+                        document.querySelector("dialogSureBtn").disabled=false;
+                        Snackbar.show({
+                            text:"YAML格式不正确",
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
+                    else{
+                        document.querySelector("dialogSureBtn").disabled=false;
+                        closeDialog();
+                        reloadLinks();
+                        Snackbar.show({
+                            text:"导入出错，请检查",
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
                 }
-                else{
+                catch(e){
+                    document.querySelector("dialogSureBtn").disabled=false;
                     closeDialog();
                     reloadLinks();
                     Snackbar.show({

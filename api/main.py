@@ -39,9 +39,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-APPID="JxZmdwgqrGpWZ0NrPeMakfDQ-gzGzoHsz"
-APPKEY="rXBdykWT1duvNWKos7LaEnfa"
-APPURL="https://jxzmdwgq.lc-cn-n1-shared.com"
+APPID="ZwnzM84cYlEyAs7LYWmb7613-MdYXbMMI"
+APPKEY="ysxfK7du8vbYnP06Yb0YIe6e"
+APPURL="https://zwnzm84c.api.lncldglobal.com"
 class LeancloudAPI:
     def __init__(self,AppUrl,AppId,AppKey):
         self.AppUrl=AppUrl

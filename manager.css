@@ -227,6 +227,16 @@ body{
     -ms-transition: all .3s;
     -o-transition: all .3s;
 }
+@media screen and (max-height: 800px) {
+    .dialog-main {
+        top:50%!important;
+    }
+}
+@media screen and (max-width: 800px) {
+    .dialog-main {
+        top:50%!important;
+    }
+}
 .dialog-main.hide{
     opacity: 0;
     pointer-events: none;

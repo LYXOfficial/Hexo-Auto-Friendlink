@@ -215,10 +215,10 @@ def rebuildAction(token:str,response:Response):
     if access(token):
         requests.post(f"https://api.github.com/repos/{GHREPO}/dispatches",
                       headers={
-                          "Accept": "application/vnd.github.everest-preview+json",
+                          "Accept": "application/vnd.github+json",
                           "Authorization": f"token {GHTOKEN}"
                       },
-                      data={
+                      json={
                           "event_type": "hooklink"
                       })
         return {"message":"ok"}

@@ -753,7 +753,7 @@ function importLinks(){
                             <p style="margin: 0px; padding: 0px; color: rgb(255, 255, 255); font-size: 14px; font-weight: 300; line-height: 1em;">
                             导入中... 这可能需要几分钟，坐和放宽
                             <br/>
-                            删除分组：${window.groups[i].name}
+                            <span class="snackbar-2ndline">删除分组：${window.groups[i].name}</span>
                             </p>`
                         }
                         catch(e){}
@@ -799,7 +799,7 @@ function importLinks(){
                             <p style="margin: 0px; padding: 0px; color: rgb(255, 255, 255); font-size: 14px; font-weight: 300; line-height: 1em;">
                             导入中... 这可能需要几分钟，坐和放宽
                             <br/>
-                            新增分组：${yaml[i].class_name}
+                            <span class="snackbar-2ndline">新增分组：${yaml[i].class_name}</span>
                             </p>`
                         }
                         catch(e){}
@@ -829,7 +829,7 @@ function importLinks(){
                             <p style="margin: 0px; padding: 0px; color: rgb(255, 255, 255); font-size: 14px; font-weight: 300; line-height: 1em;">
                             导入中... 这可能需要几分钟，坐和放宽
                             <br/>
-                            导入友链：${yaml[i].link_list[j].name}
+                            <span class="snackbar-2ndline">导入友链：${yaml[i].link_list[j].name}（${j+1}/${yaml[i].link_list.length}）</span>
                             </p>`
                         }
                         catch(e){}

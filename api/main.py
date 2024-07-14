@@ -218,7 +218,7 @@ def rebuildAction(token:str,response:Response):
                           "Accept": "application/vnd.github.everest-preview+json",
                           "Authorization": f"token {GHTOKEN}"
                       },
-                      data={
+                      json={
                           "event_type": "hooklink"
                       })
         return {"message":"ok"}

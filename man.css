@@ -60,8 +60,9 @@ body{
     background-color: #f2f5f8;
 }
 #main{
-    margin:20px;
+    margin:20px auto;
     display: block;
+    max-width: 1200px;
 }
 .btn{
     padding:5px 10px;
@@ -195,11 +196,11 @@ body{
     left: 0;
     z-index: 114514;
     background-color: rgba(0, 0, 0, 0.5);
-    transition: all .3s;
-    -webkit-transition: all .3s;
-    -moz-transition: all .3s;
-    -ms-transition: all .3s;
-    -o-transition: all .3s;
+    transition: all .5s;
+    -webkit-transition: all .5s;
+    -moz-transition: all .5s;
+    -ms-transition: all .5s;
+    -o-transition: all .5s;
 }
 .dialog-main {
     position: fixed;
@@ -311,12 +312,15 @@ body{
 .dialog-form-title{
     margin-right: 10px;
 }
+.dialog-form{
+    line-height: 30px;
+}
 .dialog-form-input {
     flex: 1;
-    height: 20px;
+    height: 25px;
     border-radius: 4px;
     border: 1px solid #0003;
-    padding: 2px 5px;
+    padding: 2px 10px;
     transition: all .3s;
     -webkit-transition: all .3s;
     -moz-transition: all .3s;
@@ -346,4 +350,15 @@ body{
 }
 #dialogCancelBtn{
     margin-right: 7px;
+}
+#newLinkGroup{
+    height:30px;
+}
+.dialog-main.show:has(pre){
+    width:min(90%,500px);
+}
+@media screen and (max-width: 1240px) {
+    #main{
+        margin:20px!important;
+    }
 }

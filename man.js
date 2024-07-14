@@ -97,6 +97,16 @@ function addGroup(){
                 return;
             }
         }
+        for(var i=0;i<window.groups.length;i++){
+            if(window.groups[i].name==document.getElementById("newGroupName").value){
+                Snackbar.show({
+                    text:"名称不能与当前已有组重复",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+        }
         var xhr=new XMLHttpRequest();
         xhr.open("POST","http://localhost:8080/api/addGroup");
         xhr.setRequestHeader("Content-Type","application/json");
@@ -363,7 +373,7 @@ function editLink(edl){
     showDialog("编辑友链",`
         <div class="dialog-form">
             <span class="dialog-form-title">分组</span>
-            ${edl.parentNode.parentNode.parentNode.parentNode.children[0].children[0].innerText}
+            <select id="newLinkGroup" class="dialog-form-input"></select>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">名称</span>
@@ -456,18 +466,30 @@ function editLink(edl){
                     });
                 }
             };
+            var sld=document.getElementById("newLinkGroup");
+            var idx=sld.selectedIndex;
+            var group=sld.options[idx].value;
             xhr.send(JSON.stringify({
                 name:document.getElementById("newLinkName").value,
                 link:document.getElementById("newLink").value,
                 avatar:document.getElementById("newLinkAvatar").value,
                 color:document.getElementById("newLinkColor").value,
                 descr:document.getElementById("newLinkDescr").value,
-                group:edl.parentNode.parentNode.parentNode.parentNode.getAttribute("uid"),
+                group:group,
                 oid:edl.parentNode.parentNode.getAttribute("oid"),
                 token:token
             }))
         }
-    )
+    );
+    var gs=document.querySelector("#newLinkGroup");
+    for(var i=0;i<window.groups.length;i++){
+        var gr=document.createElement("option");
+        gr.text=window.groups[i].name;
+        gr.value=window.groups[i].id;
+        if(edl.parentNode.parentNode.parentNode.parentNode.getAttribute("uid")==gr.value)
+            gr.selected=true;
+        gs.appendChild(gr);
+    }
 }
 function addLinkByYAML(adg){
     showDialog("从Butterfly YAML添加单个友链",`
@@ -591,6 +613,230 @@ function addLinkByYAML(adg){
     editor.setOption("wrap", "free");
     editor.session.setMode("ace/mode/yaml");      
 }
+function importLinks(){
+    showDialog("从Butterfly YAML批量导入友链",`
+        若有分组名称重合将合并原组与新组并保留原组描述，不会覆盖重合的友链信息，防止出现问题。
+        <div class="dialog-form">
+            <input type="checkbox" id="dialog-yamleditor-import-override">清空已存在的友链及分组（建议）
+        </div>
+        <pre id="dialog-yamleditor-container"></pre>`,async ()=>{
+            try{
+                var yaml=jsyaml.load(editor.getValue());
+                for(var i=0;i<yaml.length;i++){
+                    if(yaml[i].constructor!=Object){
+                        Snackbar.show({
+                            text:"YAML格式不正确",
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
+                    if(yaml[i].class_name==''||yaml[i].class_name==undefined){
+                        Snackbar.show({
+                            text:"有一个分组缺少名称",
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
+                    if(yaml[i].link_list==undefined)
+                        yaml[i].link_list=[];
+                    for(var j=0;j<yaml[i].link_list.length;j++){
+                        if(yaml[i].link_list[j].constructor!=Object){
+                            Snackbar.show({
+                                text:"YAML格式不正确",
+                                showAction: false,
+                                pos: "top-center"
+                            });
+                            return;
+                        }
+                        if(yaml[i].link_list[j].name==undefined||yaml[i].link_list[j].name==''){
+                            if(yaml[i].link_list[j].link!=undefined&&yaml[i].link_list[j].link!=''){
+                                Snackbar.show({
+                                    text:`${yaml[i].link_list[j].link}缺少名称`,
+                                    showAction: false,
+                                    pos: "top-center"
+                                });
+                                return;
+                            }
+                            Snackbar.show({
+                                text:"有一个友链缺少名称",
+                                showAction: false,
+                                pos: "top-center"
+                            });
+                            return;
+                        }
+                        if(yaml[i].link_list[j].link==undefined||yaml[i].link_list[j].link==''){
+                            Snackbar.show({
+                                text:`${yaml[i].link_list[j].name}缺少网址`,
+                                showAction: false,
+                                pos: "top-center"
+                            });
+                            return;
+                        }
+                        if(yaml[i].link_list[j].avatar==undefined||yaml[i].link_list[j].avatar==''){
+                            Snackbar.show({
+                                text:`${yaml[i].link_list[j].name}缺少头像`,
+                                showAction: false,
+                                pos: "top-center"
+                            });
+                            return;
+                        }
+                        try{
+                            if(yaml[i].link_list[j].link.indexOf("https://")==-1&&yaml[i].link_list[j].link.indexOf("http://")==-1)
+                                throw error;
+                            new URL(yaml[i].link_list[j].link);
+                        }
+                        catch(err){
+                            Snackbar.show({
+                                text:`${yaml[i].link_list[j].name}网址格式不正确`,
+                                showAction: false,
+                                pos: "top-center"
+                            });
+                            return;
+                        }
+                        try{
+                            if(yaml[i].link_list[j].avatar.indexOf("https://")==-1&&yaml[i].link_list[j].avatar.indexOf("http://")==-1)
+                                throw error;
+                            new URL(yaml[i].link_list[j].avatar);
+                        }
+                        catch(err){
+                            Snackbar.show({
+                                text:`${yaml[i].link_list[j].name}头像格式不正确`,
+                                showAction: false,
+                                pos: "top-center"
+                            });
+                            return;
+                        }
+                    }
+                }
+                Snackbar.show({
+                    text:`导入中... 这可能需要几分钟，坐和放宽`,
+                    showAction: false,
+                    pos: "top-center",
+                    duration: '12000000',
+                });
+                if(document.getElementById("dialog-yamleditor-import-override").checked){
+                    for(var i=0;i<window.groups.length;i++){
+                        await new Promise((resolve,reject)=>{
+                            var xhr=new XMLHttpRequest();
+                            xhr.open("GET",`http://localhost:8080/api/removeGroup?token=${token}&oid=${window.groups[i].oid}`);
+                            xhr.onload=()=>{
+                                if(xhr.status==200)
+                                    resolve();
+                                else reject();
+                            }
+                            xhr.onerror=()=>{
+                                reject();
+                            }
+                            xhr.send();
+                        });
+                    }
+                    window.groups=[];
+                }
+                var maxpos=-0x7fffffff;
+                for(var i=0;i<yaml.length;i++){
+                    var ngid=undefined;
+                    for(var j=0;j<window.groups.length;j++){
+                        if(yaml[i].class_name==window.groups[j].name){
+                            var ngid=window.groups[j].id;
+                            maxpos=Math.max(window.groups[j].pos,maxpos);
+                        }
+                    }
+                    if(maxpos==-0x7fffffff) maxpos=0;
+                    else maxpos++;
+                    if(yaml[i].class_desc==undefined)
+                        yaml[i].class_desc='';
+                    if(ngid==undefined){
+                        var ngid=await new Promise((resolve,reject)=>{
+                            var xhr=new XMLHttpRequest();
+                            xhr.open("POST",`http://localhost:8080/api/addGroup`);
+                            xhr.setRequestHeader('Content-Type', 'application/json');
+                            xhr.onload=()=>{
+                                if(xhr.status==200)
+                                    resolve(JSON.parse(xhr.responseText).groupinfo.id);
+                                else reject();
+                            }
+                            xhr.onerror=()=>{
+                                reject();
+                            }
+                            xhr.send(JSON.stringify({
+                                token: token,
+                                pos: maxpos,
+                                name: yaml[i].class_name,
+                                descr: yaml[i].class_desc
+                            }));
+                        });
+                    }
+                    for(var j=0;j<yaml[i].link_list.length;j++){
+                        await new Promise((resolve,reject)=>{
+                            var xhr=new XMLHttpRequest();
+                            xhr.open("POST",`http://localhost:8080/api/addLink`);
+                            xhr.setRequestHeader('Content-Type', 'application/json');
+                            xhr.onload=()=>{
+                                if(xhr.status==200) resolve();
+                                else reject();
+                            }
+                            xhr.onerror=()=>{
+                                reject();
+                            }
+                            if(yaml[i].link_list[j].theme_color==''||yaml[i].link_list[j].theme_color==undefined)
+                                xhr.send(JSON.stringify({
+                                    token: token,
+                                    name: yaml[i].link_list[j].name,
+                                    descr: yaml[i].link_list[j].descr,
+                                    link: yaml[i].link_list[j].link,
+                                    avatar: yaml[i].link_list[j].avatar,
+                                    group: ngid
+                                }));
+                            else xhr.send(JSON.stringify({
+                                token: token,
+                                name: yaml[i].link_list[j].name,
+                                descr: yaml[i].link_list[j].descr,
+                                color: yaml[i].link_list[j].theme_color,
+                                link: yaml[i].link_list[j].link,
+                                avatar: yaml[i].link_list[j].avatar,
+                                group: ngid
+                            }));
+                        });
+                    }
+                }
+                closeDialog();
+                reloadLinks();
+                Snackbar.show({
+                    text:"导入成功",
+                    showAction: false,
+                    pos: "top-center"
+                });
+            }
+            catch(e){
+                if(e.name=="YAMLException"){
+                    Snackbar.show({
+                        text:"YAML格式不正确",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+                else{
+                    closeDialog();
+                    reloadLinks();
+                    Snackbar.show({
+                        text:"导入出错，请检查",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+            }
+        }
+    );
+    var editor=ace.edit("dialog-yamleditor-container");
+    editor.setReadOnly(false);
+    editor.setFontSize(15);
+    editor.session.setMode("ace/mode/yaml");      
+}
+
 (reloadLinks=()=>{
     document.getElementsByClassName("reloadLinks")[0].disabled=true;
     var rl=document.getElementsByClassName("group");
@@ -603,8 +849,8 @@ function addLinkByYAML(adg){
     ldb.innerHTML="<br>加载中...";
     document.getElementById("main").appendChild(ldb);
     var xhr=new XMLHttpRequest();
-    xhr.open("GET",`http://localhost:8080/api/getGroups?token=${token}`)
-    xhr.onreadystatechange=function(){
+    xhr.open("GET",`http://localhost:8080/api/getGroups`)
+    xhr.onreadystatechange=async ()=>{
         if(xhr.readyState==4&&xhr.status==200){
             window.groups=JSON.parse(xhr.responseText).groups;
             for(var i=0;i<window.groups.length;i++){
@@ -632,33 +878,36 @@ function addLinkByYAML(adg){
                 var lc=document.createElement("div");
                 lc.className="links-container";
                 group.appendChild(lc);
-                var lxhr=new XMLHttpRequest();
-                lxhr.open("GET",`http://localhost:8080/api/getLinks?token=${token}&group=${window.groups[i].id}`,false)
-                lxhr.send();
-                if(lxhr.status==200){
-                    var links=JSON.parse(lxhr.responseText).links;
-                    for(var j=0;j<links.length;j++){
-                        var link=document.createElement("div");
-                        link.className="link-info";
-                        link.setAttribute("oid",links[j].oid);
-                        link.innerHTML=`
-                            <img class="link-avatar" src="${links[j].avatar}"></img>
-                            <a href="${links[j].link}" class="link-name">${links[j].name}</a>
-                            <div class="link-color"><div class="color-block" style="background-color:${links[j].color==undefined?"#888888bb":links[j].color}"></div>${links[j].color==undefined||links[j].color==''?"暂无颜色":links[j].color}</div>
-                            <div class="link-buttons">
-                                <button class="mini-btn editLink" onclick="editLink(this);" title="编辑该友链">
-                                    <i class="fa fa-edit"></i>
-                                </button>
-                                <button class="mini-btn copyLink" onclick="copyLink(this);" title="复制链接">
-                                    <i class="fa fa-link"></i>
-                                </button>
-                                <button class="mini-btn removeLink" onclick="removeLink(this);" title="删除该友链">
-                                    <i class="fa fa-trash-alt"></i>
-                                </button>
-                            </div>
-                            <div class="link-descr">${links[j].descr}</div>`
-                        lc.appendChild(link);
+                var links=JSON.parse(await new Promise((resolve)=>{
+                    var lxhr=new XMLHttpRequest();
+                    lxhr.open("GET",`http://localhost:8080/api/getLinks?group=${window.groups[i].id}`)
+                    lxhr.onload=function(){
+                        if(lxhr.status==200)
+                            resolve(lxhr.responseText);
                     }
+                    lxhr.send();
+                })).links;
+                for(var j=0;j<links.length;j++){
+                    var link=document.createElement("div");
+                    link.className="link-info";
+                    link.setAttribute("oid",links[j].oid);
+                    link.innerHTML=`
+                        <img class="link-avatar" src="${links[j].avatar}" onerror="this.onerror=null,this.src='https://bu.dusays.com/2024/07/07/668a8ffdacde3.png'"></img>
+                        <a target="_blank" href="${links[j].link}" class="link-name">${links[j].name}</a>
+                        <div class="link-color"><div class="color-block" style="background-color:${links[j].color==undefined?"#888888bb":links[j].color}"></div>${links[j].color==undefined||links[j].color==''?"暂无颜色":links[j].color}</div>
+                        <div class="link-buttons">
+                            <button class="mini-btn editLink" onclick="editLink(this);" title="编辑该友链">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button class="mini-btn copyLink" onclick="copyLink(this);" title="复制链接">
+                                <i class="fa fa-link"></i>
+                            </button>
+                            <button class="mini-btn removeLink" onclick="removeLink(this);" title="删除该友链">
+                                <i class="fa fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="link-descr">${links[j].descr}</div>`
+                    lc.appendChild(link);
                 }
                 document.getElementById("main").appendChild(group);
             }

@@ -37,7 +37,7 @@ class LeancloudAPI:
         self.AppKey=AppKey
         self.AppId=AppId
     def getClassObjects(self,className:str):
-        return requests.get(f"{self.AppUrl}/1.1/classes/{className}",headers={
+        return requests.get(f"{self.AppUrl}/1.1/classes/{className}?limit=1000",headers={
             "X-LC-Id":self.AppId,
             "X-LC-Key":self.AppKey,
         }).json()
@@ -111,29 +111,21 @@ def verftoken(token:str,response:Response):
     else:
         return "ok"
 @app.get("/api/getGroups")
-def getgroups(token:str,response:Response):
-    if access(token):
-        gps=lca.getClassObjects("group")
-        gps["results"].sort(key=lambda x:x["pos"])
-        rst=[]
-        for i in gps["results"]:
-            rst.append({"name":i["name"],"id":i["id"],"descr":i["descr"],"pos":i["pos"],"oid":i["objectId"]})
-        return {"message":"ok","groups":rst}
-    else:
-        response.status_code=403
-        return {"message":"invaild token"}
+def getgroups(response:Response):
+    gps=lca.getClassObjects("group")
+    gps["results"].sort(key=lambda x:x["pos"])
+    rst=[]
+    for i in gps["results"]:
+        rst.append({"name":i["name"],"id":i["id"],"descr":i["descr"],"pos":i["pos"],"oid":i["objectId"]})
+    return {"message":"ok","groups":rst}
 @app.get("/api/getLinks")
-def getlinks(token:str,group:int,response:Response):
-    if access(token):
-        lks=lca.getClassObjects("flink")
-        rst=[]
-        for i in lks["results"]:
-            if i["group"]==group:
-                rst.append({"name":i["name"],"link":i["link"],"avatar":i["avatar"],"descr":i["descr"],"color":i["color"],"oid":i["objectId"]})
-        return {"message":"ok","links":rst}
-    else:
-        response.status_code=403
-        return {"message":"invaild token"}
+def getlinks(group:int,response:Response):
+    lks=lca.getClassObjects("flink")
+    rst=[]
+    for i in lks["results"]:
+        if i["group"]==group:
+            rst.append({"name":i["name"],"link":i["link"],"avatar":i["avatar"],"descr":i["descr"],"color":i["color"],"oid":i["objectId"]})
+    return {"message":"ok","links":rst}
 @app.post("/api/addGroup")
 def addgroup(grp:Group,response:Response):
     if access(grp.token):
@@ -142,8 +134,9 @@ def addgroup(grp:Group,response:Response):
             id=random.randint(0,99999999)
             if id not in ids:
                 break
-        lca.createObject("group",{"name":grp.name,"descr":grp.descr,"pos":grp.pos,"id":id})
-        return {"message":"ok"}
+        lco={"message":"ok","groupinfo":lca.createObject("group",{"name":grp.name,"descr":grp.descr,"pos":grp.pos,"id":id})}
+        lco["groupinfo"]["id"]=id
+        return lco
     else:
         response.status_code=403
         return {"message":"invaild token"}

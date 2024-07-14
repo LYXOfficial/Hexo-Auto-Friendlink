@@ -1029,4 +1029,11 @@ function importLinks(){
         }
     }
     xhr.send();
+    var xhr2=new XMLHttpRequest();
+    xhr2.open("GET","https://blog.yaria.top/updateTime")
+    xhr2.onreadystatechange=function(){
+        if(xhr2.readyState==4&&xhr2.status==200)
+            document.querySelector(".blog-updated").innerText=xhr2.responseText;
+    }
+    xhr2.send();
 })();

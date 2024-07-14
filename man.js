@@ -55,7 +55,8 @@ function logout(){
                 location.href="/";
             },1000);
         }
-    }
+    };
+    xhr.send();
 }
 function copyToClip(content){
     var aux=document.createElement("input"); 

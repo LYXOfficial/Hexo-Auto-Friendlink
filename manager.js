@@ -1028,7 +1028,7 @@ function removeSelect(){
         });
     }
 }
-exportLinks=async ()=>{
+function exportLinks(){
     Snackbar.show({
         text:"正在导出...",
         showAction: false,
@@ -1048,6 +1048,9 @@ exportLinks=async ()=>{
         });
         return;
     }
+}
+function yamlLink(ylk){
+    //还没写qaq
 }
 (reloadLinks=()=>{
     if(window.isMultiSelecting)
@@ -1119,6 +1122,9 @@ exportLinks=async ()=>{
                         <div class="link-buttons">
                             <button class="mini-btn editLink" onclick="editLink(this);" title="编辑该友链">
                                 <i class="fa fa-edit"></i>
+                            </button>
+                            <button class="mini-btn yamlLink" onclick="yamlLink(this);" title="导出该友链为yaml">
+                                <i class="fa fa-file-alt"></i>
                             </button>
                             <button class="mini-btn copyLink" onclick="copyLink(this);" title="复制链接">
                                 <i class="fa fa-link"></i>

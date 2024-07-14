@@ -40,6 +40,13 @@ class SendRequest(BaseModel):
     token:str=None
     groupname:str=None
     oid:str=None
+class EditRequest(BaseModel):
+    oid:str=None
+    name:str=None
+    link:str=None
+    avatar:str=None
+    descr:str=None
+    color:str=None
 app=FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -278,7 +285,7 @@ def requestlink(flink:Flink,response:Response):
             response.status_code=403
             return {"message":"XSS attack?"}
     else:
-        lca.createObject("pending",{
+        oid=lca.createObject("pending",{
             "name":flink.name,
             "link":flink.link,
             "avatar":flink.avatar,
@@ -286,7 +293,7 @@ def requestlink(flink:Flink,response:Response):
             "color":flink.color,
             "email":flink.email,
             "type":0
-        })
+        })["objectId"]
         try:
             emsender.send("Ariaの友链审核系统",OWNEREMAIL,"Ariasakaの小窝有新的友链申请",
                       EMAIL_TEMPLATE.format("你好，Ariasakaの小窝有新的友链申请：",
@@ -297,16 +304,30 @@ def requestlink(flink:Flink,response:Response):
                                             flink.color,"https://links.yaria.top/manager.html",
                                             "点击进入审核"))
             emsender.send("Ariaの友链审核系统",flink.email,"Ariasakaの小窝友链申请成功",
-                    EMAIL_TEMPLATE.format("你好，你的友链申请已经成功，请确认并等待审核<br/>如果需要修改友链请在评论区留言！",
+                    EMAIL_TEMPLATE.format("你好，你的友链申请已经成功，请确认并等待审核<br/>如果需要修改友链请在下方链接出修改哦！",
                                         flink.name,flink.link,
                                         flink.link,flink.avatar,
                                         flink.avatar,flink.descr,
                                         flink.email,flink.email,
-                                        flink.color,"https://blog.yaria.top/links/",
-                                        "点击进入友链页"))
+                                        flink.color,f"https://links.yaria.top/editPending.html?token={oid}",
+                                        "点击进入修改页"))
         except:
             return {"message":"send email failed"}
         return {"message":"ok"}
+@app.post("/api/changePendingLink")
+def changependinglink(er:EditRequest,response:Response):
+    if lca.getObjectInfo("pending",er.oid)!={}:
+        lca.updateObject("pending",er.oid,{
+            "name":er.name,
+            "link":er.link,
+            "avatar":er.avatar,
+            "descr":er.descr,
+            "color":er.color,
+        });
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
 @app.get("/api/getPendingLinks")
 def getpendinglinks(token:str,response:Response):
     if access(token):

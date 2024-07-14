@@ -213,7 +213,7 @@ def destroytoken(token:str,response:Response):
 @app.get("/api/rebuildAction")
 def rebuildAction(token:str,response:Response):
     if access(token):
-        requests.post(f"https://api.github.com/repos/{GHREPO}/dispathes",
+        requests.post(f"https://api.github.com/repos/{GHREPO}/dispatches",
                       headers={
                           "Accept": "application/vnd.github.everest-preview+json",
                           "Authorization": f"token {GHTOKEN}"

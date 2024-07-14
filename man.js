@@ -946,7 +946,9 @@ function importLinks(){
     editor.setFontSize(15);
     editor.session.setMode("ace/mode/yaml");      
 }
+function multiSelect(){
 
+}
 (reloadLinks=()=>{
     document.getElementsByClassName("reloadLinks")[0].disabled=true;
     var rl=document.getElementsByClassName("group");
@@ -985,7 +987,8 @@ function importLinks(){
                         <i class="fa fa-file-alt"></i>
                     </button>
                 </div>
-                <div class="group-descr">${window.groups[i].descr}</div>`
+                <div class="group-descr">${window.groups[i].descr}</div>
+                <span class="group-count"></span>`
                 var lc=document.createElement("div");
                 lc.className="links-container";
                 group.appendChild(lc);
@@ -998,6 +1001,7 @@ function importLinks(){
                     }
                     lxhr.send();
                 })).links;
+                group.children[2].innerText=`共${links.length}个友链`;
                 for(var j=0;j<links.length;j++){
                     var link=document.createElement("div");
                     link.className="link-info";

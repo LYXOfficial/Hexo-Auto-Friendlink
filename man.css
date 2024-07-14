@@ -97,7 +97,7 @@ body{
     margin-bottom:10px;
     flex-wrap: nowrap;
 }
-.group-descr{
+.group-descr,.group-count{
     margin-left:10px;
 }
 .mini-btn{
@@ -369,4 +369,8 @@ body{
     .snackbar-container{
         margin:15px!important;
     }
+}
+.blog-updated{
+    line-height: 30px;
+    margin-left: 5px;
 }

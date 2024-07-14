@@ -365,3 +365,8 @@ body{
 .snackbar-2ndline{
     margin-top:3px;
 }
+@media screen and (max-width:640px){
+    .snackbar-container{
+        margin:15px!important;
+    }
+}

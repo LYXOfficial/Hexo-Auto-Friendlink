@@ -3,7 +3,7 @@
     box-shadow: 0 0 10px #0004;
     padding:20px;
     padding-top:5px;
-    width: fit-content;
+    width: 250px;
     background-color: white;
     position: absolute;
     left:50%;
@@ -24,6 +24,10 @@ h2{
 }
 #pwdk{
     margin-bottom:20px;
+    display: flex;
+}
+#pwdk span{
+    white-space: nowrap;
 }
 input{
     height: 25px;
@@ -55,4 +59,9 @@ input{
 }
 .snackbar-container p{
     color:black!important;
+}
+@media screen and (max-width:640px){
+    .snackbar-container{
+        margin:15px!important;
+    }
 }

@@ -74,6 +74,29 @@ function copyToClip(content){
 function copyLink(cpl){
     copyToClip(cpl.parentNode.parentNode.children[1].innerText);
 }
+function directBuild(){
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET", `/api/rebuildAction${token}`);
+    xhr.onreadystatechange=()=>{
+        if(xhr.readyState==4&&xhr.status==200){
+            Snackbar.show({
+                text:"Action触发成功，请稍等更新",
+                showAction: false,
+                pos: "top-center"
+            });
+            return
+        }
+        else if(xhr.readyState==4){
+            Snackbar.show({
+                text:"远程部署请求失败",
+                showAction: false,
+                pos: "top-center"
+            });
+            return;
+        }
+    }
+    xhr.send();
+}
 function addGroup(){
     showDialog("新增分组",`<div class="dialog-form">
         <span class="dialog-form-title">名称</span>

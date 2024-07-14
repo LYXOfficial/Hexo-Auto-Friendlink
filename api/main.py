@@ -42,6 +42,8 @@ app.add_middleware(
 APPID=os.environ.get("APPID")
 APPKEY=os.environ.get("APPKEY")
 APPURL=os.environ.get("APPURL")
+GHTOKEN="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"
+GHREPO="LYXOfficial/blogsource"
 class LeancloudAPI:
     def __init__(self,AppUrl,AppId,AppKey):
         self.AppUrl=AppUrl
@@ -204,6 +206,21 @@ def destroytoken(token:str,response:Response):
                 i["expires"]=0
                 break
         lca.updateObject("login",lca.getClassObjects("login")["results"][0]["objectId"],{"allowtoken":upd})
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
+@app.get("/api/rebuildAction")
+def rebuildAction(token:str,response:Response):
+    if access(token):
+        requests.post(f"https://api.github.com/repos/{GHREPO}/dispathes",
+                      headers={
+                          "Accept": "application/vnd.github.everest-preview+json",
+                          "Authorization": f"token {GHTOKEN}"
+                      },
+                      data={
+                          "event_type": "hooklink"
+                      })
         return {"message":"ok"}
     else:
         response.status_code=403

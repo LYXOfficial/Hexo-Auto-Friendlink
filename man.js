@@ -41,15 +41,21 @@ function showDialog(title,content,callback){
     document.querySelector(".dialog-main").className="dialog-main show";
 }
 function logout(){
-    Snackbar.show({
-        text:"已登出",
-        showAction: false,
-        pos: "top-center"
-    });
-    setTimeout(function(){
-        document.cookie="token=;path=/;max-age=0;expires=0;";
-        location.href="/";
-    },1000);
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET",`/api/destroyToken?token=${token}`);
+    xhr.onreadystatechange=function(){
+        if(xhr.readyState==4&&xhr.status==200){
+            Snackbar.show({
+                text:"已登出",
+                showAction: false,
+                pos: "top-center"
+            });
+            setTimeout(function(){
+                document.cookie="token=;path=/;max-age=0;expires=0;";
+                location.href="/";
+            },1000);
+        }
+    }
 }
 function copyToClip(content){
     var aux=document.createElement("input"); 

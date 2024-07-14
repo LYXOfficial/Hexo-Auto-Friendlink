@@ -41,7 +41,7 @@ app.add_middleware(
 )
 APPID="ZwnzM84cYlEyAs7LYWmb7613-MdYXbMMI"
 APPKEY="ysxfK7du8vbYnP06Yb0YIe6e"
-APPURL="https://zwnzm84c.api.lncldglobal.com"
+APPURL="https://llc.yaria.top"
 class LeancloudAPI:
     def __init__(self,AppUrl,AppId,AppKey):
         self.AppUrl=AppUrl
@@ -191,6 +191,19 @@ def addlink(flink:Flink,response:Response):
 def modifylink(flink:Flink,response:Response):
     if access(flink.token):
         lca.updateObject("flink",flink.oid,{"group":flink.group,"name":flink.name,"link":flink.link,"avatar":flink.avatar,"descr":flink.descr,"color":flink.color})
+        return {"message":"ok"}
+    else:
+        response.status_code=403
+        return {"message":"invaild token"}
+@app.get("/api/destroyToken")
+def destroytoken(token:str,response:Response):
+    if access(token):
+        upd=lca.getClassObjects("login")["results"][0]["allowtoken"]
+        for i in upd:
+            if i["token"]==token:
+                i["expires"]=0
+                break
+        lca.updateObject("login",lca.getClassObjects("login")["results"][0]["objectId"],{"allowtoken":upd})
         return {"message":"ok"}
     else:
         response.status_code=403

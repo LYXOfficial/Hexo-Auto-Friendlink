@@ -13,7 +13,7 @@ from typing import Union
 from fastapi import FastAPI,Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import requests,time,random
+import requests,time,random,os
 class Password(BaseModel):
     pwd:str=None
 class Flink(BaseModel):
@@ -39,9 +39,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-APPID="ZwnzM84cYlEyAs7LYWmb7613-MdYXbMMI"
-APPKEY="ysxfK7du8vbYnP06Yb0YIe6e"
-APPURL="https://llc.yaria.top"
+APPID=os.environ.get("APPID")
+APPKEY=os.environ.get("APPKEY")
+APPURL=os.environ.get("APPURL")
 class LeancloudAPI:
     def __init__(self,AppUrl,AppId,AppKey):
         self.AppUrl=AppUrl

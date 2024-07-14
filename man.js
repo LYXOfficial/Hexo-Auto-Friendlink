@@ -13,7 +13,7 @@ if(document.cookie.indexOf("token=")==-1){
 else{
     var token=document.cookie.split("token=")[1].split(";")[0];
     var xhr=new XMLHttpRequest();
-    xhr.open("GET",`http://localhost:8080/api/verifyToken?token=${token}`);
+    xhr.open("GET",`/api/verifyToken?token=${token}`);
     xhr.onreadystatechange=function(){
         if(xhr.readyState==4&&xhr.status==403){
             document.cookie="token=;path=/;max-age=0;expires=0;";
@@ -117,7 +117,7 @@ function addGroup(){
             }
         }
         var xhr=new XMLHttpRequest();
-        xhr.open("POST","http://localhost:8080/api/addGroup");
+        xhr.open("POST","/api/addGroup");
         xhr.setRequestHeader("Content-Type","application/json");
         xhr.onreadystatechange=()=>{
             if(xhr.readyState==4&&xhr.status==200){
@@ -186,7 +186,7 @@ function editGroup(edg){
             }
         }
         var xhr=new XMLHttpRequest();
-        xhr.open("POST","http://localhost:8080/api/modifyGroup");
+        xhr.open("POST","/api/modifyGroup");
         xhr.setRequestHeader("Content-Type","application/json");
         xhr.onreadystatechange=()=>{
             if(xhr.readyState==4&&xhr.status==200){
@@ -219,7 +219,7 @@ function removeGroup(rmg){
     showDialog("确认",`确实要删除这个分组吗，分组下的所有友链也将被删除！!（真的很久！）`,()=>{
         var oid=rmg.parentNode.parentNode.getAttribute("oid");
         var xhr=new XMLHttpRequest();
-        xhr.open("GET",`http://localhost:8080/api/removeGroup?token=${token}&oid=${oid}`);
+        xhr.open("GET",`/api/removeGroup?token=${token}&oid=${oid}`);
         xhr.setRequestHeader("Content-Type","application/json");
         xhr.onreadystatechange=()=>{
             if(xhr.readyState==4&&xhr.status==200){
@@ -246,7 +246,7 @@ function removeLink(rml){
     showDialog("确认",`确实要删除这个友链吗？（真的很久！）`,()=>{
         var oid=rml.parentNode.parentNode.getAttribute("oid");
         var xhr=new XMLHttpRequest();
-        xhr.open("GET",`http://localhost:8080/api/removeLink?token=${token}&oid=${oid}`);
+        xhr.open("GET",`/api/removeLink?token=${token}&oid=${oid}`);
         xhr.setRequestHeader("Content-Type","application/json");
         xhr.onreadystatechange=()=>{
             if(xhr.readyState==4&&xhr.status==200){
@@ -346,7 +346,7 @@ function addLink(adl){
                 return;
             }
             var xhr=new XMLHttpRequest();
-            xhr.open("POST",`http://localhost:8080/api/addLink`);
+            xhr.open("POST",`/api/addLink`);
             xhr.setRequestHeader("Content-Type","application/json");
             xhr.onreadystatechange=()=>{
                 if(xhr.readyState==4&&xhr.status==200){
@@ -455,7 +455,7 @@ function editLink(edl){
                 return;
             }
             var xhr=new XMLHttpRequest();
-            xhr.open("POST",`http://localhost:8080/api/modifyLink`);
+            xhr.open("POST",`/api/modifyLink`);
             xhr.setRequestHeader("Content-Type","application/json");
             xhr.onreadystatechange=()=>{
                 if(xhr.readyState==4&&xhr.status==200){
@@ -576,7 +576,7 @@ function addLinkByYAML(adg){
                     return;
                 }
                 var xhr=new XMLHttpRequest();
-                xhr.open("POST",`http://localhost:8080/api/addLink`);
+                xhr.open("POST",`/api/addLink`);
                 xhr.setRequestHeader("Content-Type","application/json");
                 xhr.onreadystatechange=()=>{
                     if(xhr.readyState==4&&xhr.status==200){
@@ -729,7 +729,7 @@ function importLinks(){
                     for(var i=0;i<window.groups.length;i++){
                         await new Promise((resolve,reject)=>{
                             var xhr=new XMLHttpRequest();
-                            xhr.open("GET",`http://localhost:8080/api/removeGroup?token=${token}&oid=${window.groups[i].oid}`);
+                            xhr.open("GET",`/api/removeGroup?token=${token}&oid=${window.groups[i].oid}`);
                             xhr.onload=()=>{
                                 if(xhr.status==200)
                                     resolve();
@@ -759,7 +759,7 @@ function importLinks(){
                     if(ngid==undefined){
                         var ngid=await new Promise((resolve,reject)=>{
                             var xhr=new XMLHttpRequest();
-                            xhr.open("POST",`http://localhost:8080/api/addGroup`);
+                            xhr.open("POST",`/api/addGroup`);
                             xhr.setRequestHeader('Content-Type', 'application/json');
                             xhr.onload=()=>{
                                 if(xhr.status==200)
@@ -780,7 +780,7 @@ function importLinks(){
                     for(var j=0;j<yaml[i].link_list.length;j++){
                         await new Promise((resolve,reject)=>{
                             var xhr=new XMLHttpRequest();
-                            xhr.open("POST",`http://localhost:8080/api/addLink`);
+                            xhr.open("POST",`/api/addLink`);
                             xhr.setRequestHeader('Content-Type', 'application/json');
                             xhr.onload=()=>{
                                 if(xhr.status==200) resolve();
@@ -858,7 +858,7 @@ function importLinks(){
     ldb.innerHTML="<br>加载中...";
     document.getElementById("main").appendChild(ldb);
     var xhr=new XMLHttpRequest();
-    xhr.open("GET",`http://localhost:8080/api/getGroups`)
+    xhr.open("GET",`/api/getGroups`)
     xhr.onreadystatechange=async ()=>{
         if(xhr.readyState==4&&xhr.status==200){
             window.groups=JSON.parse(xhr.responseText).groups;
@@ -889,7 +889,7 @@ function importLinks(){
                 group.appendChild(lc);
                 var links=JSON.parse(await new Promise((resolve)=>{
                     var lxhr=new XMLHttpRequest();
-                    lxhr.open("GET",`http://localhost:8080/api/getLinks?group=${window.groups[i].id}`)
+                    lxhr.open("GET",`/api/getLinks?group=${window.groups[i].id}`)
                     lxhr.onload=function(){
                         if(lxhr.status==200)
                             resolve(lxhr.responseText);

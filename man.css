@@ -2,7 +2,7 @@
     --aria-black:#000000c7;
     --aria-blue:rgba(49, 115, 202, 0.904);
     --aria-blue-hov:rgba(49, 115, 202, 0.747);
-    --aria-shadow:0 0 10px #0004;
+    --aria-shadow:0 0 10px #0002;
 }
 .snackbar-container{
     background-color: white!important;

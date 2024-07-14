@@ -210,21 +210,6 @@ def destroytoken(token:str,response:Response):
     else:
         response.status_code=403
         return {"message":"invaild token"}
-@app.get("/api/rebuildAction")
-def rebuildAction(token:str,response:Response):
-    if access(token):
-        requests.post(f"https://api.github.com/repos/{GHREPO}/dispathes",
-                      headers={
-                          "Accept": "application/vnd.github.everest-preview+json",
-                          "Authorization": f"token {GHTOKEN}"
-                      },
-                      data={
-                          "event_type": "hooklink"
-                      })
-        return {"message":"ok"}
-    else:
-        response.status_code=403
-        return {"message":"invaild token"}
 if __name__=='__main__':
     import uvicorn
     uvicorn.run(app="main:app",host="127.0.0.1",port=8080,reload=1)

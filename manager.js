@@ -262,7 +262,7 @@ function removeGroup(rmg){
     showDialog("确认",`确实要删除这个分组吗，分组下的所有友链也将被删除！！\n永久删除！（真的很久！）`,async ()=>{
         var oid=rmg.parentNode.parentNode.getAttribute("oid");
         Snackbar.show({
-            text:"删除中...这可能需要几分钟，请坐和放宽",
+            text:"删除中...这可能需要几分钟，坐和放宽",
             showAction: false,
             pos: "top-center",
             duration: "1200000"
@@ -1235,6 +1235,13 @@ function allowPendingLink(apl){
                     if(d1f&&d2f&&d3f)
                         requestDoneCallback();
                 }
+                else if(xhr3.readyState==4&&xhr3.status==514){
+                    Snackbar.show({
+                        text:"通过邮件发送失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
                 else if(xhr3.readyState==4){
                     Snackbar.show({
                         text:"过审失败",
@@ -1293,7 +1300,7 @@ function refusePendingLink(rpl){
                 });
             }
         };
-        xhr.send()
+        xhr.send();
     });
 }
 function editPendingLink(epl){
@@ -1396,6 +1403,20 @@ function editPendingLink(epl){
                     closeDialog();
                     reloadLinks();
                 }
+                else if(xhr.readyState==4&&xhr.status==406){
+                    Snackbar.show({
+                        text:"修改失败，请排除XSS攻击内容",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+                else if(xhr.readyState==4){
+                    Snackbar.show({
+                        text:"修改失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
             }
             xhr.send(JSON.stringify({
                 name:document.getElementById("newLinkName").value,
@@ -1409,12 +1430,148 @@ function editPendingLink(epl){
     });
 }
 function refuseAllPending(){
-    showDialog("确认","真的要拒绝全部申请吗？申请信息将被永久删除！（真的很久！）",()=>{
+    showDialog("确认","真的要拒绝全部申请吗？申请信息将被永久删除！（真的很久！）",async ()=>{
+        Snackbar.show({
+            text:"正在拒绝全部申请...\n这可能需要几分钟，坐和放宽。",
+            showAction: false,
+            pos: "top-center",
+            duration: "1200000"
+        })
         var dpls=document.querySelectorAll(".group.pending>.links-container>.link-info");
-        for(var i=0;i<dpls.length;i++){
-            
+        try{
+            for(var i=0;i<dpls.length;i++){
+                await new Promise((resolve,reject)=>{
+                    var xhr=new XMLHttpRequest();
+                    xhr.open("GET",`/api/removePendingLink?oid=${dpls[i].getAttribute("oid")}`)
+                    xhr.onreadystatechange=function(){
+                        if(xhr.readyState==4&&xhr.status==200)
+                            resolve()
+                        else if(xhr.readyState==4)
+                            reject()
+                    }
+                    xhr.send();
+                });
+            }
+            Snackbar.show({
+                text:"批量处理成功",
+                showAction: false,
+                pos: "top-center"
+            });
+            closeDialog();
+            reloadLinks();
+        }
+        catch(e){
+            Snackbar.show({
+                text:"批量处理失败",
+                showAction: false,
+                pos: "top-center"
+            });
+            return;
         }
     });
+}
+function allowAllPending(){
+    showDialog("确认",`真的要接受全部申请吗？
+        <div class="dialog-form">
+            <span class="dialog-form-title">分组</span>
+            <select id="newLinkGroup" class="dialog-form-input"></select>
+        </div>`,async ()=>{
+        Snackbar.show({
+            text:"正在接受全部申请...\n这可能需要几分钟，坐和放宽。",
+            showAction: false,
+            pos: "top-center",
+            duration: "1200000"
+        })
+        var dpls=document.querySelectorAll(".group.pending>.links-container>.link-info");
+        try{
+            var sld=document.getElementById("newLinkGroup");
+            var idx=sld.selectedIndex;
+            var group=sld.options[idx].value;
+            for(var i=0;i<dpls.length;i++){
+                await new Promise((resolve,reject)=>{
+                    var xhr=new XMLHttpRequest();
+                    xhr.open("GET",`/api/removePendingLink?oid=${dpls[i].getAttribute("oid")}`);
+                    xhr.setRequestHeader("Content-Type","application/json");
+                    xhr.onreadystatechange=()=>{
+                        if(xhr.readyState==4&&xhr.status==200)
+                            resolve();
+                        else if(xhr.readyState==4)
+                            reject();
+                    };
+                    xhr.send()
+                });
+                await new Promise((resolve,reject)=>{
+                    var xhr=new XMLHttpRequest();
+                    xhr.open("POST",`/api/addLink`);
+                    xhr.setRequestHeader("Content-Type","application/json");
+                    xhr.onreadystatechange=()=>{
+                        if(xhr.readyState==4&&xhr.status==200)
+                            resolve();
+                        else if(xhr.readyState==4)
+                            reject();
+                    }
+                    xhr.send(JSON.stringify({
+                        name:dpls[i].children[1].innerText,
+                        link:dpls[i].children[1].href,
+                        avatar:dpls[i].children[0].getAttribute("orgsrc"),
+                        color:dpls[i].children[2].innerText,
+                        descr:dpls[i].children[4].innerText,
+                        group:group,
+                        token:token
+                    }));
+                });
+                var sendi=await new Promise((resolve,reject)=>{
+                    var xhr=new XMLHttpRequest();
+                    xhr.open("POST",`/api/sendPassMail`);
+                    xhr.setRequestHeader("Content-Type","application/json");
+                    xhr.onreadystatechange=()=>{
+                        if(xhr.readyState==4&&xhr.status==200)
+                            resolve(false);
+                        else if(xhr.readyState==4&&xhr.status==514)
+                            resolve(true);
+                        else if(xhr.readyState==4)
+                            reject();
+                    }
+                    xhr.send(JSON.stringify({
+                        groupname:sld.options[idx].innerText,
+                        token:token,
+                        name:dpls[i].children[1].innerText,
+                        email:dpls[i].children[3].children[3].getAttribute("mail")
+                    }));
+                });
+                if(sendi)
+                    Snackbar.show({
+                        text:`${dpls[i].children[1].innerText} 邮件发送失败`,
+                        showAction: false,
+                        pos: "top-center"
+                    });
+            }
+            Snackbar.show({
+                text:"批量过审成功",
+                showAction: false,
+                pos: "top-center"
+            });
+            closeDialog();
+            reloadLinks();
+        }
+        catch(e){
+            Snackbar.show({
+                text:"批量过审失败",
+                showAction: false,
+                pos: "top-center"
+            });
+            return;
+        }
+    });
+    var gs=document.querySelector("#newLinkGroup");
+    for(var i=0;i<window.groups.length;i++){
+        var gr=document.createElement("option");
+        gr.text=window.groups[i].name;
+        gr.value=window.groups[i].id;
+        if(i==window.groups.length-1)
+            gr.selected=true;
+        gs.appendChild(gr);
+    }
 }
 (reloadLinks=()=>{
     if(window.isMultiSelecting)

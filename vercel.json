@@ -1,6 +1,6 @@
 
 {
     "routes": [
-      {"src": "http://localhost:8080/api(.*)", "dest": "api/main.py"}
+      {"src": "/api(.*)", "dest": "api/main.py"}
     ]
 }

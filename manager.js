@@ -71,6 +71,19 @@ function copyToClip(content){
         pos: "top-center"
     });
 }
+function copyToClip(content){
+    var aux=document.createElement("textarea"); 
+    aux.value=content; 
+    document.body.appendChild(aux); 
+    aux.select();
+    document.execCommand("copy"); 
+    document.body.removeChild(aux);
+    Snackbar.show({
+        text:"复制成功",
+        showAction: false,
+        pos: "top-center"
+    });
+}
 function copyLink(cpl){
     copyToClip(cpl.parentNode.parentNode.children[1].innerText);
 }
@@ -444,11 +457,11 @@ function editLink(edl){
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">头像</span>
-            <input type="text" class="dialog-form-input" id="newLinkAvatar" value="${edl.parentNode.parentNode.children[0].src}" placeholder="请输入友链头像【http(s)】"/>
+            <input type="text" class="dialog-form-input" id="newLinkAvatar" value="${edl.parentNode.parentNode.children[0].getAttribute("orgsrc")}" placeholder="请输入友链头像【http(s)】"/>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">颜色</span>
-            <input type="text" class="dialog-form-input" id="newLinkColor" value="${edl.parentNode.parentNode.children[2].innerText}" placeholder="请输入友链显示颜色"/>
+            <input type="text" class="dialog-form-input" id="newLinkColor" value="${edl.parentNode.parentNode.children[2].innerText=="暂无颜色"?"":edl.parentNode.parentNode.children[2].innerText}" placeholder="请输入友链显示颜色"/>
         </div>
         <div class="dialog-form">
             <span class="dialog-form-title">描述</span>
@@ -1029,28 +1042,379 @@ function removeSelect(){
     }
 }
 function exportLinks(){
-    Snackbar.show({
-        text:"正在导出...",
-        showAction: false,
-        pos: "top-center"
-    });
-    try{
-        var grl=document.getElementsByClassName("links-container");
-        for(var i=0;i<window.groups.length;i++){
-            //还没写好别急qwq
+    var grl=document.querySelectorAll(".links-container:not(.links-container.pending)");
+    var yml=[];
+    for(var i=0;i<window.groups.length;i++){
+        yml.push({class_name:window.groups[i].name,
+                clas_desc:window.groups[i].descr,
+                link_list:[]});
+        for(var j=0;j<grl[i].children.length;j++){
+            yml[i].link_list.push({
+                    name:grl[i].children[j].children[1].innerHTML,
+                    link:grl[i].children[j].children[1].href,
+                    avatar:grl[i].children[j].children[0].getAttribute("orgsrc"),
+                    descr:grl[i].children[j].children[4].innerHTML,
+                    theme_color:grl[i].children[j].children[2].innerText=="暂无颜色"?"":grl[i].children[j].children[2].innerText
+                });
         }
     }
-    catch(e){
-        Snackbar.show({
-            text:"导出失败",
-            showAction: false,
-            pos: "top-center"
-        });
-        return;
+    yml=jsyaml.dump(yml);
+    showDialog("导出友链为YAML",`
+        <div class="dialog-form">
+            <button class="mini-btn copyace" onclick="copyAce();" title="复制文本">
+                <i class="fa fa-copy"></i>
+            </button>
+        </div>
+        <pre id="dialog-yamleditor-container"></pre>`,closeDialog);
+    var editor=ace.edit("dialog-yamleditor-container");
+    editor.setValue(yml);
+    editor.setReadOnly(true);
+    editor.setFontSize(15);
+    editor.session.setMode("ace/mode/yaml");      
+    copyAce=()=>{
+        copyToClip(editor.getValue());
     }
 }
 function yamlLink(ylk){
-    //还没写qaq
+    var yml=[{name:ylk.parentNode.parentNode.children[1].innerHTML,
+        link:ylk.parentNode.parentNode.children[1].href,
+        avatar:ylk.parentNode.parentNode.children[0].getAttribute("orgsrc"),
+        descr:ylk.parentNode.parentNode.children[4].innerHTML,
+        color:ylk.parentNode.parentNode.children[2].innerText=="暂无颜色"?"":ylk.parentNode.parentNode.children[2].innerText
+    }]
+    yml=jsyaml.dump(yml);
+    showDialog("导出单个友链",`
+        <div class="dialog-form">
+            <span class="dialog-form-title">分组</span>
+            ${ylk.parentNode.parentNode.parentNode.parentNode.children[0].children[0].innerHTML} 
+            <button class="mini-btn copyace" onclick="copyAce();" title="复制文本">
+                <i class="fa fa-copy"></i>
+            </button>
+        </div>
+        <pre id="dialog-yamleditor-container"></pre>`,closeDialog);
+    var editor=ace.edit("dialog-yamleditor-container");
+    editor.setValue(yml);
+    editor.setReadOnly(true);
+    editor.setFontSize(15);
+    editor.setOption("wrap", "free");
+    editor.session.setMode("ace/mode/yaml");      
+    copyAce=()=>{
+        copyToClip(editor.getValue());
+    }
+}
+function allowPendingLink(apl){
+    showDialog("确认信息并通过友链",`
+        <div class="dialog-form">
+            <span class="dialog-form-title">分组</span>
+            <select id="newLinkGroup" class="dialog-form-input"></select>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">名称</span>
+            <input type="text" class="dialog-form-input" id="newLinkName" value="${apl.parentNode.parentNode.children[1].innerHTML}" placeholder="请输入友链名称"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">网址</span>
+            <input type="text" class="dialog-form-input" id="newLink" value="${apl.parentNode.parentNode.children[1].href}" placeholder="请输入友链网址【http(s)】"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">头像</span>
+            <input type="text" class="dialog-form-input" id="newLinkAvatar" value="${apl.parentNode.parentNode.children[0].getAttribute("orgsrc")}" placeholder="请输入友链头像【http(s)】"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">颜色</span>
+            <input type="text" class="dialog-form-input" id="newLinkColor" value="${apl.parentNode.parentNode.children[2].innerText=="暂无颜色"?"":apl.parentNode.parentNode.children[2].innerText}" placeholder="请输入友链显示颜色"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">描述</span>
+            <textarea class="dialog-form-input" id="newLinkDescr" placeholder="...">${apl.parentNode.parentNode.children[4].innerText}</textarea>
+        </div>`,()=>{
+            if(document.getElementById("newLinkName").value==''){
+                Snackbar.show({
+                    text:"名称不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLink").value==''){
+                Snackbar.show({
+                    text:"网址不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLinkAvatar").value==''){
+                Snackbar.show({
+                    text:"头像不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            try{
+                if(document.getElementById("newLink").value.indexOf("https://")==-1&&document.getElementById("newLink").value.indexOf("http://")==-1)
+                    throw error;
+                new URL(document.getElementById("newLink").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"网址格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            try{
+                if(document.getElementById("newLinkAvatar").value.indexOf("https://")==-1&&document.getElementById("newLinkAvatar").value.indexOf("http://")==-1)
+                    throw error;
+                new URL(document.getElementById("newLinkAvatar").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"头像格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            var d1f=false,d2f=false,d3f=false;
+            var xhr=new XMLHttpRequest();
+            xhr.open("GET",`/api/removePendingLink?oid=${apl.parentNode.parentNode.getAttribute("oid")}`);
+            xhr.setRequestHeader("Content-Type","application/json");
+            xhr.onreadystatechange=()=>{
+                if(xhr.readyState==4&&xhr.status==200){
+                    d1f=true;
+                    if(d1f&&d2f&&d3f)
+                        requestDoneCallback();
+                }
+                else if(xhr.readyState==4){
+                    Snackbar.show({
+                        text:"过审失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+            };
+            xhr.send()
+            var xhr2=new XMLHttpRequest();
+            xhr2.open("POST",`/api/addLink`);
+            xhr2.setRequestHeader("Content-Type","application/json");
+            xhr2.onreadystatechange=()=>{
+                if(xhr2.readyState==4&&xhr2.status==200){
+                    d2f=true;
+                    if(d1f&&d2f&&d3f)
+                        requestDoneCallback();
+                }
+                else if(xhr2.readyState==4){
+                    Snackbar.show({
+                        text:"过审失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+            }
+            var sld=document.getElementById("newLinkGroup");
+            var idx=sld.selectedIndex;
+            var group=sld.options[idx].value;
+            xhr2.send(JSON.stringify({
+                name:document.getElementById("newLinkName").value,
+                link:document.getElementById("newLink").value,
+                avatar:document.getElementById("newLinkAvatar").value,
+                color:document.getElementById("newLinkColor").value,
+                descr:document.getElementById("newLinkDescr").value,
+                group:group,
+                token:token
+            }));
+            var xhr3=new XMLHttpRequest();
+            xhr3.open("POST",`/api/sendPassMail`);
+            xhr3.setRequestHeader("Content-Type","application/json");
+            xhr3.onreadystatechange=()=>{
+                if(xhr3.readyState==4&&xhr3.status==200){
+                    d3f=true;
+                    if(d1f&&d2f&&d3f)
+                        requestDoneCallback();
+                }
+                else if(xhr3.readyState==4){
+                    Snackbar.show({
+                        text:"过审失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+            }
+            xhr3.send(JSON.stringify({
+                groupname:sld.options[idx].innerText,
+                token:token,
+                name:document.getElementById("newLinkName").value,
+                email:apl.parentNode.children[3].getAttribute("mail")
+            }));
+        }
+    );
+    var gs=document.querySelector("#newLinkGroup");
+    for(var i=0;i<window.groups.length;i++){
+        var gr=document.createElement("option");
+        gr.text=window.groups[i].name;
+        gr.value=window.groups[i].id;
+        if(i==window.groups.length-1)
+            gr.selected=true;
+        gs.appendChild(gr);
+    }
+}
+function requestDoneCallback(){
+    Snackbar.show({
+        text:"过审成功",
+        showAction: false,
+        pos: "top-center"
+    });
+    closeDialog();
+    reloadLinks();
+}
+function refusePendingLink(rpl){
+    showDialog("确认","真的要拒绝这个申请吗？申请信息将被永久删除！（真的很久！）",()=>{
+        var xhr=new XMLHttpRequest();
+        xhr.open("GET",`/api/removePendingLink?oid=${rpl.parentNode.parentNode.getAttribute("oid")}`);
+        xhr.setRequestHeader("Content-Type","application/json");
+        xhr.onreadystatechange=()=>{
+            if(xhr.readyState==4&&xhr.status==200){
+                Snackbar.show({
+                    text:"拒绝成功",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                closeDialog();
+                reloadLinks();
+            }
+            else if(xhr.readyState==4){
+                Snackbar.show({
+                    text:"拒绝失败",
+                    showAction: false,
+                    pos: "top-center"
+                });
+            }
+        };
+        xhr.send()
+    });
+}
+function editPendingLink(epl){
+    showDialog("修改友链申请",`
+        <div class="dialog-form">
+            <span class="dialog-form-title">名称</span>
+            <input type="text" class="dialog-form-input" id="newLinkName" value="${epl.parentNode.parentNode.children[1].innerHTML}" placeholder="请输入友链名称"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">邮箱</span>
+            <input type="text" class="dialog-form-input" id="newLinkEmail" value="${epl.parentNode.children[3].getAttribute("mail")}" placeholder="请输入友链邮箱"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">网址</span>
+            <input type="text" class="dialog-form-input" id="newLink" value="${epl.parentNode.parentNode.children[1].href}" placeholder="请输入友链网址【http(s)】"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">头像</span>
+            <input type="text" class="dialog-form-input" id="newLinkAvatar" value="${epl.parentNode.parentNode.children[0].getAttribute("orgsrc")}" placeholder="请输入友链头像【http(s)】"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">颜色</span>
+            <input type="text" class="dialog-form-input" id="newLinkColor" value="${epl.parentNode.parentNode.children[2].innerText=="暂无颜色"?"":epl.parentNode.parentNode.children[2].innerText}" placeholder="请输入友链显示颜色"/>
+        </div>
+        <div class="dialog-form">
+            <span class="dialog-form-title">描述</span>
+            <textarea class="dialog-form-input" id="newLinkDescr" placeholder="...">${epl.parentNode.parentNode.children[4].innerText}</textarea>
+        </div>`,()=>{
+            if(document.getElementById("newLinkName").value==''){
+                Snackbar.show({
+                    text:"名称不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLink").value==''){
+                Snackbar.show({
+                    text:"网址不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            else if(document.getElementById("newLinkAvatar").value==''){
+                Snackbar.show({
+                    text:"头像不能为空",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            if(document.getElementById("newLinkEmail").value!=''){
+                var reg=/^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+                if(reg.test(document.getElementById("newLinkEmail").value)==-1){
+                    Snackbar.show({
+                        text:"邮箱格式不正确",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    return;
+                }
+            }
+            try{
+                if(document.getElementById("newLink").value.indexOf("https://")==-1&&document.getElementById("newLink").value.indexOf("http://")==-1)
+                    throw error;
+                new URL(document.getElementById("newLink").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"网址格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            try{
+                if(document.getElementById("newLinkAvatar").value.indexOf("https://")==-1&&document.getElementById("newLinkAvatar").value.indexOf("http://")==-1)
+                    throw error;
+                new URL(document.getElementById("newLinkAvatar").value);
+            }
+            catch(err){
+                Snackbar.show({
+                    text:"头像格式不正确",
+                    showAction: false,
+                    pos: "top-center"
+                });
+                return;
+            }
+            var xhr=new XMLHttpRequest();
+            xhr.open("POST", "/api/changePendingLink");
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhr.onreadystatechange=function(){
+                if(xhr.readyState==4&&xhr.status==200){
+                    Snackbar.show({
+                        text:"修改成功",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                    closeDialog();
+                    reloadLinks();
+                }
+            }
+            xhr.send(JSON.stringify({
+                name:document.getElementById("newLinkName").value,
+                link:document.getElementById("newLink").value,
+                avatar:document.getElementById("newLinkAvatar").value,
+                email:epl.parentNode.children[3].getAttribute("mail"),
+                color:document.getElementById("newLinkColor").value,
+                descr:document.getElementById("newLinkDescr").value,
+                oid:epl.parentNode.parentNode.getAttribute("oid")
+            }));
+    });
+}
+function refuseAllPending(){
+    showDialog("确认","真的要拒绝全部申请吗？申请信息将被永久删除！（真的很久！）",()=>{
+        var dpls=document.querySelectorAll(".group.pending>.links-container>.link-info");
+        for(var i=0;i<dpls.length;i++){
+            
+        }
+    });
 }
 (reloadLinks=()=>{
     if(window.isMultiSelecting)
@@ -1058,10 +1422,11 @@ function yamlLink(ylk){
     var dbs=document.getElementsByClassName("btn")
     for(var i=0;i<dbs.length;i++)
         dbs[i].disabled=true;
-    var rl=document.getElementsByClassName("group");
-    var xi=rl.length;
-    for(var i=0;i<xi;i++)
-        document.getElementById("main").removeChild(rl[0]);
+    var rl=document.querySelectorAll(".group:not(.group.pending)");
+    for(var i=0;i<rl.length;i++)
+        document.getElementById("main").removeChild(rl[i]);
+    document.querySelector(".group.pending>.links-container").innerHTML='';
+    document.querySelector(".group.pending").className="group pending hide";
     ldb=document.createElement("div");
     ldb.id="preload";
     ldb.innerHTML="<br>加载中...";
@@ -1113,7 +1478,7 @@ function yamlLink(ylk){
                     link.className="link-info";
                     link.setAttribute("oid",links[j].oid);
                     link.innerHTML=`
-                        <img class="link-avatar" onclick="window.open('${links[j].link}')" src="${links[j].avatar}" onerror="this.onerror=null,this.src='https://bu.dusays.com/2024/07/07/668a8ffdacde3.png'"></img>
+                        <img class="link-avatar" onclick="window.open('${links[j].link}')" src="${links[j].avatar}" orgsrc="${links[j].avatar}" onerror="this.onerror=null,this.src='https://bu.dusays.com/2024/07/07/668a8ffdacde3.png'"></img>
                         <a target="_blank" href="${links[j].link}" class="link-name">${links[j].name}</a>
                         <div class="link-color">
                             <div class="color-block" style="background-color:${links[j].color==undefined?"#888888bb":links[j].color}"></div>
@@ -1155,4 +1520,45 @@ function yamlLink(ylk){
             document.querySelector(".blog-updated").innerText="博客最近更新："+xhr2.responseText;
     }
     xhr2.send();
+    var xhr3=new XMLHttpRequest();
+    xhr3.open("GET",`/api/getPendingLinks?token=${token}`);
+    xhr3.onreadystatechange=function(){
+        if(xhr3.readyState==4&&xhr3.status==200){
+            var links=JSON.parse(xhr3.responseText)["pending"];
+            var cnt=0;
+            for(var i=0;i<links.length;i++){
+                if(links[i].type==0){
+                    cnt++;
+                    var link=document.createElement("div");
+                    link.className="link-info";
+                    link.setAttribute("oid", links[i].objectId);
+                    link.innerHTML=`<img class="link-avatar" src="${links[i].avatar}" orgsrc="${links[i].avatar}" onclick="window.open("${links[i].link}")" onerror="this.onerror=null,this.src='https://bu.dusays.com/2024/07/07/668a8ffdacde3.png'"/>
+                        <a target="_blank" href="${links[i].link}" class="link-name">${links[i].name}</a>
+                        <div class="link-color">
+                                <div class="color-block" style="background-color:${links[i].color==undefined?"#888888bb":links[i].color}"></div>
+                                ${links[i].color==undefined||links[i].color==''?"暂无颜色":links[i].color}
+                            </div>
+                        <div class="link-buttons">
+                            <button class="mini-btn editPendingLink" onclick="editPendingLink(this);" title="编辑该友链">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button class="mini-btn refusePendingLink" onclick="refusePendingLink(this);" title="拒绝该友链">
+                                <i class="fa fa-close"></i>
+                            </button>
+                            <button class="mini-btn allowPendingLink" onclick="allowPendingLink(this);" title="通过该友链">
+                                <i class="fa fa-check"></i>
+                            </button>
+                            <a class="mini-btn" href="mailto:${links[i].email}" mail="${links[i].email}">
+                                <i class="fa fa-envelope"></i>
+                            </a>
+                        </div>
+                        <div class="link-descr">${links[i].descr}</div>`;
+                        document.querySelector(".group.pending>.links-container").appendChild(link);
+                }
+            }
+            if(cnt)
+                document.querySelector(".group.pending").className="group pending show";
+        }
+    }
+    xhr3.send();
 })();

@@ -79,10 +79,10 @@ body{
     background-color:var(--aria-blue);
     color:white;
 }
-.btn.btn-blue:hover{
+.btn.btn-blue:hover:not(.btn[disabled]:hover){
     background-color:var(--aria-blue-hov);
 }
-.btn:hover{
+.btn:hover:not(.btn[disabled]:hover){
     cursor: pointer;
 }
 .group{
@@ -391,7 +391,7 @@ body{
     color:white;
     background-color: var(--aria-red);
 }
-.btn.btn-red:hover{
+.btn.btn-red:hover:not(.btn[disabled]:hover){
     color: white;
     background-color: var(--aria-red-hov);
 }
@@ -428,4 +428,7 @@ nav{
 }
 .link-avatar:hover{
     cursor: pointer;
+}
+.group.pending.hide{
+    display: none!important;
 }

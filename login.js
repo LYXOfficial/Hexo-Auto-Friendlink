@@ -63,28 +63,5 @@ document.getElementById("login").onclick=()=>{
     }
 };
 if(document.cookie.indexOf("token=")!=-1){
-    var token=document.cookie.split("token=")[1].split(";")[0];
-    var xhr=new XMLHttpRequest();
-    xhr.open("GET",`/api/verifyToken?token=${token}`);
-    xhr.onreadystatechange=function(){
-        if(xhr.readyState==4&&xhr.status==200){
-            Snackbar.show({
-                text:"已登录，跳转中...",
-                showAction: false,
-                pos: "top-center"
-            });
-            setTimeout(()=>{
-                location.href="/manager.html";
-            },500);
-        }
-        else if(xhr.readyState==4){
-            document.cookie="token=;path=/;max-age=0;expires=0;";
-            Snackbar.show({
-                text:"登录失效，请重新登录",
-                showAction: false,
-                pos: "top-center"
-            });
-        }
-    }
-    xhr.send();
+    document.location="/manager.html";
 }

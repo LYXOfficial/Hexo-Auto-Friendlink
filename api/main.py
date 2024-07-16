@@ -314,6 +314,7 @@ def requestlink(flink:Flink,response:Response):
                                         flink.color,f"https://links.yaria.top/editPending.html?token={oid}",
                                         "点击进入修改页"))
         except:
+            response.status_code=514
             return {"message":"send email failed"}
         return {"message":"ok"}
 @app.post("/api/changePendingLink")
@@ -355,7 +356,7 @@ def sendpassmail(req:SendRequest,response:Response):
             return {"message":"ok"}
         except:
             response.status_code=514
-            return {"message":"send mail error"}
+            return {"message":"send mail failed"}
     else:
         response.status_code=403
         return {"message":"invaild token"}

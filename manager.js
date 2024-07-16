@@ -34,7 +34,7 @@ function closeDialog(){
     document.querySelector(".dialog-main").className="dialog-main hide";
 }
 function showDialog(title,content,callback){
-    document.querySelector("#dialogSureBtn").onclick=callback;
+    document.querySelector("#dialogSureBtn").onclick=(thi)=>{callback();thi.onclick=null;};
     document.querySelector(".dialog-title").innerHTML=title;
     document.querySelector(".dialog-container").innerHTML=content
     document.querySelector("#dialog").className="dialog-mask enable";

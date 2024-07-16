@@ -305,7 +305,7 @@ def requestlink(flink:Flink,response:Response):
                                             flink.email,flink.email,
                                             flink.color,"https://links.yaria.top/manager.html",
                                             "点击进入审核"))
-            emsender.send("Ariaの友链审核系统",flink.email,"Ariasakaの小窝友链申请成功",
+            emsender.send("Ariaの友链审核系统",flink.email,"Ariasakaの小窝友链申请通知",
                     EMAIL_TEMPLATE.format("你好，你的友链申请已经成功，请确认并等待审核<br/>如果需要修改友链请在下方链接出修改哦！",
                                         flink.name,flink.link,
                                         flink.link,flink.avatar,

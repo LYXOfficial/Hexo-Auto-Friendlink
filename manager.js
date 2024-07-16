@@ -564,15 +564,15 @@ function editLink(edl){
     }
 }
 function addLinkByYAML(adg){
-    showDialog("从Butterfly YAML添加单个友链",`
+    showDialog("从Butterfly YAML添加友链",`
         <div class="dialog-form">
             <span class="dialog-form-title">分组</span>
             ${adg.parentNode.children[0].innerHTML}
         </div>
-        <pre id="dialog-yamleditor-container"></pre>`,()=>{
+        <pre id="dialog-yamleditor-container"></pre>`,async ()=>{
             try{
                 var yaml=jsyaml.load(editor.getValue());
-                if(yaml.length>1){
+                if(yaml.length==0){
                     Snackbar.show({
                         text:"YAML格式不正确",
                         showAction: false,
@@ -580,94 +580,103 @@ function addLinkByYAML(adg){
                     });
                     return;
                 }
-                if(yaml[0].constructor!=Object){
-                    Snackbar.show({
-                        text:"YAML格式不正确",
-                        showAction: false,
-                        pos: "top-center"
-                    });
-                    return;
-                }
-                if(yaml[0].name==undefined||yaml[0].name==''){
-                    Snackbar.show({
-                        text:"请填写名称",
-                        showAction: false,
-                        pos: "top-center"
-                    });
-                    return;
-                }
-                if(yaml[0].link==undefined||yaml[0].link==''){
-                    Snackbar.show({
-                        text:"请填写链接",
-                        showAction: false,
-                        pos: "top-center"
-                    });
-                    return;
-                }
-                if(yaml[0].avatar==undefined||yaml[0].avatar==''){
-                    Snackbar.show({
-                        text:"请填写头像",
-                        showAction: false,
-                        pos: "top-center"
-                    });
-                    return;
-                }
-                try{
-                    if(yaml[0].link.indexOf("https://")==-1&&yaml[0].link.indexOf("http://")==-1)
-                        throw error;
-                    new URL(yaml[0].link);
-                }
-                catch(err){
-                    Snackbar.show({
-                        text:"网址格式不正确",
-                        showAction: false,
-                        pos: "top-center"
-                    });
-                    return;
-                }
-                try{
-                    if(yaml[0].avatar.indexOf("https://")==-1&&yaml[0].avatar.indexOf("http://")==-1)
-                        throw error;
-                    new URL(yaml[0].avatar);
-                }
-                catch(err){
-                    Snackbar.show({
-                        text:"头像格式不正确",
-                        showAction: false,
-                        pos: "top-center"
-                    });
-                    return;
-                }
-                var xhr=new XMLHttpRequest();
-                xhr.open("POST",`/api/addLink`);
-                xhr.setRequestHeader("Content-Type","application/json");
-                xhr.onreadystatechange=()=>{
-                    if(xhr.readyState==4&&xhr.status==200){
-                        closeDialog();
-                        reloadLinks();
+                for(var i=0;i<yaml.length;i++){
+                    if(yaml[i].constructor!=Object){
                         Snackbar.show({
-                            text:"添加成功",
+                            text:"YAML格式不正确",
                             showAction: false,
                             pos: "top-center"
                         });
+                        return;
                     }
-                    else if(xhr.readyState==4){
+                    if(yaml[i].name==undefined||yaml[i].name==''){
                         Snackbar.show({
-                            text:"添加失败",
+                            text:"有一个友链缺少名称",
                             showAction: false,
                             pos: "top-center"
                         });
+                        return;
                     }
-                };
-                xhr.send(JSON.stringify({
-                    name:yaml[0].name,
-                    link:yaml[0].link,
-                    avatar:yaml[0].avatar,
-                    color:yaml[0].theme_color,
-                    descr:yaml[0].descr==null?"":yaml[0].descr,
-                    group:adg.parentNode.parentNode.getAttribute("uid"),
-                    token:token
-                }))
+                    if(yaml[i].link==undefined||yaml[i].link==''){
+                        Snackbar.show({
+                            text:`${yaml[i].name}：请填写链接`,
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
+                    if(yaml[i].avatar==undefined||yaml[i].avatar==''){
+                        Snackbar.show({
+                            text:`${yaml[i].name}：请填写头像`,
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
+                    try{
+                        if(yaml[i].link.indexOf("https://")==-1&&yaml[i].link.indexOf("http://")==-1)
+                            throw error;
+                        new URL(yaml[i].link);
+                    }
+                    catch(err){
+                        Snackbar.show({
+                            text:`${yaml[i].name}：网址格式不正确`,
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
+                    try{
+                        if(yaml[i].avatar.indexOf("https://")==-1&&yaml[i].avatar.indexOf("http://")==-1)
+                            throw error;
+                        new URL(yaml[i].avatar);
+                    }
+                    catch(err){
+                        Snackbar.show({
+                            text:`${yaml[i].name}：头像格式不正确`,
+                            showAction: false,
+                            pos: "top-center"
+                        });
+                        return;
+                    }
+                }
+                try{
+                    for(var i=0;i<yaml.length;i++)
+                        await new Promise((resolve,reject)=>{
+                            var xhr=new XMLHttpRequest();
+                            xhr.open("POST",`/api/addLink`);
+                            xhr.setRequestHeader("Content-Type","application/json");
+                            xhr.onreadystatechange=()=>{
+                                if(xhr.readyState==4&&xhr.status==200)
+                                    resolve();
+                                else if(xhr.readyState==4)
+                                    reject();
+                            };
+                            xhr.send(JSON.stringify({
+                                name:yaml[i].name,
+                                link:yaml[i].link,
+                                avatar:yaml[i].avatar,
+                                color:yaml[i].theme_color,
+                                descr:yaml[i].descr==null?"":yaml[i].descr,
+                                group:adg.parentNode.parentNode.getAttribute("uid"),
+                                token:token
+                            }))
+                        });
+                    closeDialog();
+                    reloadLinks();
+                    Snackbar.show({
+                        text:"添加成功",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
+                catch(e){
+                    Snackbar.show({
+                        text:"添加失败",
+                        showAction: false,
+                        pos: "top-center"
+                    });
+                }
             }
             catch(e){
                 Snackbar.show({
@@ -1611,7 +1620,7 @@ function allowAllPending(){
                     <button class="mini-btn addGroup" onclick="addLink(this);" title="添加友链">
                         <i class="fa fa-plus"></i>
                     </button>
-                    <button class="mini-btn addGroup" onclick="addLinkByYAML(this);" title="从Butterfly YAML添加单个友链">
+                    <button class="mini-btn addGroup" onclick="addLinkByYAML(this);" title="从Butterfly YAML添加友链">
                         <i class="fa fa-file-alt"></i>
                     </button>
                 </div>

@@ -664,7 +664,7 @@ function addLinkByYAML(adg){
                     link:yaml[0].link,
                     avatar:yaml[0].avatar,
                     color:yaml[0].theme_color,
-                    descr:yaml[0].descr,
+                    descr:yaml[0].descr==null?"":yaml[0].descr,
                     group:adg.parentNode.parentNode.getAttribute("uid"),
                     token:token
                 }))
@@ -892,7 +892,7 @@ function importLinks(){
                                 xhr.send(JSON.stringify({
                                     token: token,
                                     name: yaml[i].link_list[j].name,
-                                    descr: yaml[i].link_list[j].descr,
+                                    descr: yaml[i].link_list[j].descr==null?'':yaml[i].link_list[j].descr,
                                     link: yaml[i].link_list[j].link,
                                     avatar: yaml[i].link_list[j].avatar,
                                     group: ngid
@@ -900,7 +900,7 @@ function importLinks(){
                             else xhr.send(JSON.stringify({
                                 token: token,
                                 name: yaml[i].link_list[j].name,
-                                descr: yaml[i].link_list[j].descr,
+                                descr: yaml[i].link_list[j].descr==null?'':yaml[i].link_list[j].descr,
                                 color: yaml[i].link_list[j].theme_color,
                                 link: yaml[i].link_list[j].link,
                                 avatar: yaml[i].link_list[j].avatar,

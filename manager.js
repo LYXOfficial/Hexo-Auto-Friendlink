@@ -1089,7 +1089,7 @@ function yamlLink(ylk){
         link:ylk.parentNode.parentNode.children[1].href,
         avatar:ylk.parentNode.parentNode.children[0].getAttribute("orgsrc"),
         descr:ylk.parentNode.parentNode.children[4].innerHTML,
-        color:ylk.parentNode.parentNode.children[2].innerText=="暂无颜色"?"":ylk.parentNode.parentNode.children[2].innerText
+        theme_color:ylk.parentNode.parentNode.children[2].innerText=="暂无颜色"?"":ylk.parentNode.parentNode.children[2].innerText
     }]
     yml=jsyaml.dump(yml);
     showDialog("导出单个友链",`

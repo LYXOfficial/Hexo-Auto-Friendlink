@@ -1431,7 +1431,7 @@ function editPendingLink(epl){
                 name:document.getElementById("newLinkName").value,
                 link:document.getElementById("newLink").value,
                 avatar:document.getElementById("newLinkAvatar").value,
-                email:epl.parentNode.children[3].getAttribute("mail"),
+                email:document.getElementById("newLinkEmail").value,
                 color:document.getElementById("newLinkColor").value,
                 descr:document.getElementById("newLinkDescr").value,
                 oid:epl.parentNode.parentNode.getAttribute("oid")

@@ -346,6 +346,9 @@ def getpendinglinks(token:str,response:Response):
     else:
         response.status_code=403
         return {"message":"invaild token"}
+@app.get("/api/getPendingLink")
+def getpendinglink(token:str,response:Response):
+    return {"message":"ok","pending":lca.getObjectInfo("pending",token)}
 @app.post("/api/sendPassMail")
 def sendpassmail(req:SendRequest,response:Response):
     if access(req.token):
